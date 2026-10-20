@@ -1,5 +1,5 @@
 # T01 · Scheletul aplicației și motorul e-DRIVE
-Stare: de făcut
+Stare: PR #1
 Depinde de: —
 
 ## Scopul
