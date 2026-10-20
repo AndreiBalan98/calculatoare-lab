@@ -1,0 +1,26 @@
+{
+  "ok": true,
+  "cui": "1",
+  "denumire": "DEMO MICRO SRL",
+  "adresa": "MUN. BOTOȘANI, STR. EXEMPLULUI NR. 1",
+  "forma_juridica": "SOCIETATE COMERCIALĂ CU RĂSPUNDERE LIMITATĂ",
+  "forma_organizare": "PERSOANA JURIDICA",
+  "caen": "6201",
+  "stare": "INREGISTRAT din data 12.03.2015",
+  "inactiv": false,
+  "radiat": false,
+  "data_inregistrare": "2015-03-12",
+  "judet": "BOTOȘANI",
+  "judet_cod": "BT",
+  "bilant": {
+    "an": 2025,
+    "angajati": 4,
+    "cifra_afaceri": 1500000,
+    "active": 900000,
+    "datorii": 300000,
+    "capitaluri": 200000,
+    "capital_social": 200,
+    "profit_brut": 120000,
+    "profit_net": 97500
+  }
+}

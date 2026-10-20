@@ -1,0 +1,26 @@
+{
+  "ok": true,
+  "cui": "11",
+  "denumire": "DEMO CAPITALURI NEGATIVE SRL",
+  "adresa": "MUN. BOTOȘANI, STR. EXEMPLULUI NR. 11",
+  "forma_juridica": "SOCIETATE COMERCIALĂ CU RĂSPUNDERE LIMITATĂ",
+  "forma_organizare": "PERSOANA JURIDICA",
+  "caen": "5610",
+  "stare": "INREGISTRAT din data 12.03.2015",
+  "inactiv": false,
+  "radiat": false,
+  "data_inregistrare": "2015-03-12",
+  "judet": "BOTOȘANI",
+  "judet_cod": "BT",
+  "bilant": {
+    "an": 2025,
+    "angajati": 5,
+    "cifra_afaceri": 900000,
+    "active": 700000,
+    "datorii": 1100000,
+    "capitaluri": -400000,
+    "capital_social": 200,
+    "profit_brut": -150000,
+    "profit_net": -150000
+  }
+}

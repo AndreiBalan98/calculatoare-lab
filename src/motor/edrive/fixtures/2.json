@@ -1,0 +1,26 @@
+{
+  "ok": true,
+  "cui": "2",
+  "denumire": "DEMO MICĂ TRANSPORT SRL",
+  "adresa": "MUN. SUCEAVA, STR. EXEMPLULUI NR. 2",
+  "forma_juridica": "SOCIETATE COMERCIALĂ CU RĂSPUNDERE LIMITATĂ",
+  "forma_organizare": "PERSOANA JURIDICA",
+  "caen": "4941",
+  "stare": "INREGISTRAT din data 12.03.2015",
+  "inactiv": false,
+  "radiat": false,
+  "data_inregistrare": "2015-03-12",
+  "judet": "SUCEAVA",
+  "judet_cod": "SV",
+  "bilant": {
+    "an": 2025,
+    "angajati": 23,
+    "cifra_afaceri": 18500000,
+    "active": 9200000,
+    "datorii": 4100000,
+    "capitaluri": 3800000,
+    "capital_social": 200,
+    "profit_brut": 1480000,
+    "profit_net": 1202500
+  }
+}

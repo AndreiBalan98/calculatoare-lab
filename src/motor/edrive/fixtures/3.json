@@ -1,0 +1,26 @@
+{
+  "ok": true,
+  "cui": "3",
+  "denumire": "DEMO MIJLOCIE DISTRIBUȚIE SA",
+  "adresa": "MUN. IAȘI, STR. EXEMPLULUI NR. 3",
+  "forma_juridica": "SOCIETATE COMERCIALĂ PE ACȚIUNI",
+  "forma_organizare": "PERSOANA JURIDICA",
+  "caen": "4639",
+  "stare": "INREGISTRAT din data 12.03.2015",
+  "inactiv": false,
+  "radiat": false,
+  "data_inregistrare": "2015-03-12",
+  "judet": "IAȘI",
+  "judet_cod": "IS",
+  "bilant": {
+    "an": 2025,
+    "angajati": 140,
+    "cifra_afaceri": 160000000,
+    "active": 95000000,
+    "datorii": 40000000,
+    "capitaluri": 35000000,
+    "capital_social": 500000,
+    "profit_brut": 12800000,
+    "profit_net": 10400000
+  }
+}

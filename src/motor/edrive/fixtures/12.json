@@ -1,0 +1,26 @@
+{
+  "ok": true,
+  "cui": "12",
+  "denumire": "DEMO ÎNDATORATĂ SRL",
+  "adresa": "MUN. VASLUI, STR. EXEMPLULUI NR. 12",
+  "forma_juridica": "SOCIETATE COMERCIALĂ CU RĂSPUNDERE LIMITATĂ",
+  "forma_organizare": "PERSOANA JURIDICA",
+  "caen": "4120",
+  "stare": "INREGISTRAT din data 12.03.2015",
+  "inactiv": false,
+  "radiat": false,
+  "data_inregistrare": "2015-03-12",
+  "judet": "VASLUI",
+  "judet_cod": "VS",
+  "bilant": {
+    "an": 2025,
+    "angajati": 8,
+    "cifra_afaceri": 3200000,
+    "active": 2600000,
+    "datorii": 2400000,
+    "capitaluri": 300000,
+    "capital_social": 200,
+    "profit_brut": 256000,
+    "profit_net": 208000
+  }
+}
