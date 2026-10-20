@@ -1,6 +1,6 @@
 # e-DRIVE: specificația experienței (v2, „o întrebare pe rând”)
 
-*Sursa de adevăr pentru **ce vede omul, ecran cu ecran**. Aspectul (culori, fonturi, forme) și mișcarea: `docs/design.md`. Versiunea 2, 20 oct 2026, 14:10 — înlocuiește complet v1 („conversația în fir de chat”), respinsă de utilizator după T02.*
+*Sursa de adevăr pentru **ce vede omul, ecran cu ecran**. Aspectul (culori, fonturi, forme) și mișcarea: `docs/design.md`. Versiunea 2.1, 20 oct 2026, 15:00 (progresul sub banda programului pe S0; glosarul la hover) — v2 înlocuiește complet v1 („conversația în fir de chat”), respinsă de utilizator după T02.*
 
 ---
 
@@ -60,6 +60,9 @@
 - Subsolul site-ului (scurt) apare doar pe ecranul de rezultat, sub conținut.
 
 ### 2.1 Progresul (mereu vizibil, fix sus sub antet)
+
+- **Poziția (v2.1, cerută de utilizator):** pe **S0**, progresul stă **sub banda albastră a programului, chiar deasupra întrebării și a câmpului CUI** (nu deasupra benzii, lipit de antet). Pe celelalte ecrane, unde banda nu mai există, stă imediat sub antet. Când pagina se derulează (ex. pe R), progresul rămâne lipit sub antet (`position: sticky`).
+- Pe desktop, progresul are aceeași lățime ca scena (~640px, centrat), nu o bandă albă pe toată lățimea ecranului; fundalul lui e cel al paginii (`tertiary`), cu o linie fină dedesubt doar când e lipit sus.
 
 - **4 etape**, cu numele scurte: **Firma · Mașinile · Prețul · Rezultatul**. Linie continuă care **se umple lin** (resort) cu fiecare răspuns, nu doar la schimbarea etapei: umplerea = întrebări răspunse / întrebări estimate (estimarea crește când aflăm numărul mașinilor; umplerea nu scade niciodată vizibil, doar se încetinește).
 - Etapa curentă: punct plin bleumarin cu un inel care respiră discret; etapele trecute: bifă aurie; viitoarele: cerc gol `quaternary`.
@@ -197,7 +200,13 @@ Vertical, cu pasul curent evidențiat, ceilalți estompați; pașii apar în cas
 
 ## 6. Textele subliniate (glosarul)
 
-Cuvintele: **microîntreprindere / întreprindere mică / mijlocie (IMM)**, **autoturism**, **microbuz**, **asamblată în UE**, **promisiune notarială**, **TVA**, **plafon**. Subliniere punctată; la atingere, o foaie mică (telefon) / un balon (desktop) cu 1–2 propoziții. Definițiile rămân în `src/scenariu/glosar.ts`.
+Cuvintele: **microîntreprindere / întreprindere mică / mijlocie (IMM)**, **autoturism**, **microbuz**, **asamblată în UE**, **promisiune notarială**, **TVA**, **plafon**. Subliniere punctată. Definițiile rămân în `src/scenariu/glosar.ts`.
+
+**Cum se arată explicația (v2.1, cerută de utilizator):**
+- **Cu mouse (desktop): la hover**, nu la click. Balon mic (max. ~280px, fond `primary`, text alb 14px, colțuri 6px, săgeată spre cuvânt), apare după ~120ms de hover, cu o estompare scurtă; rămâne cât timp mouse-ul e pe cuvânt **sau pe balon**; dispare la ~150ms după ieșire. Poziționat deasupra cuvântului (sub, dacă nu încape), fără să iasă din ecran.
+- **Cu tastatura:** același balon la **focus** (Tab), închis cu Esc.
+- **Pe ecrane tactile (fără hover):** la atingere (tap), același balon, închis la atingerea în altă parte. (Detecția: `@media (hover: hover) and (pointer: fine)` sau `pointerType`.)
+- Fără foaie de jos și fără dialog pentru glosar.
 
 ## 7. Regulile programului (motorul, neschimbat)
 
