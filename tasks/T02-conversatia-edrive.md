@@ -1,5 +1,5 @@
 # T02 · Conversația e-DRIVE: vie, organică, în stilul site-ului
-Stare: de făcut
+Stare: PR #2
 Depinde de: T01 (pe `main`)
 
 ## Scopul
