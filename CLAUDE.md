@@ -7,7 +7,7 @@ Primul calculator: **e-DRIVE** (finanțare pentru mașini electrice, IMM-uri).
 ## Cum se lucrează (important)
 
 - **Planificarea se face în altă parte** (un chat de planificare). Tu, Claude Code, **execuți task-uri** din `tasks/` (format și reguli: `tasks/README.md`).
-- Un task = **o ramură** `tNN-nume-scurt` din `main` → commit-uri → **Pull Request** spre `main` cu **raportul** cerut în `tasks/README.md`. **Nu faci merge** singur.
+- Un task = **o ramură** din `main` (`tNN-nume-scurt` sau ramura atribuită de sesiune) → commit-uri → **Pull Request** spre `main` cu **raportul** cerut în `tasks/README.md`. **Nu faci merge** singur.
 - Dacă ceva din task e neclar sau contrazice documentele: alegi varianta cea mai rezonabilă, o scrii la „Presupuneri” în raport și mergi mai departe. Nu inventa reguli de finanțare.
 - Nu modifica `docs/flux-edrive.md` și `docs/referinta/` decât dacă task-ul o cere explicit.
 

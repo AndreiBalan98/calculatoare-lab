@@ -4,7 +4,7 @@
 
 1. **Planificarea** (chatul de planificare cu utilizatorul) scrie un task nou aici: `tasks/TNN-nume-scurt.md`, pe `main`.
 2. **Utilizatorul** deschide o sesiune **Claude Code** pe acest repo și scrie: `Execută tasks/TNN-nume-scurt.md`.
-3. **Claude Code** face o ramură `tNN-nume-scurt`, implementează, verifică, deschide un **Pull Request** spre `main` cu raportul de mai jos. **Nu face merge.**
+3. **Claude Code** lucrează pe o ramură separată (numele `tNN-nume-scurt` dacă se poate; altfel ramura atribuită de sesiune, ex. `claude/…`, e în regulă), implementează, verifică, deschide un **Pull Request** spre `main` cu raportul de mai jos. **Nu face merge.**
 4. **Utilizatorul** se uită pe linkul de previzualizare Vercel al PR-ului (pe telefon) și aduce impresiile în chatul de planificare.
 5. **Planificarea** citește PR-ul, face review; utilizatorul face merge (sau se scrie un task de corecturi).
 
