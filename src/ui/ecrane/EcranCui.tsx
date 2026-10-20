@@ -1,13 +1,12 @@
 'use client';
 
-// S0 · Start + CUI: banda programului (doar aici), întrebarea, câmpul mare, „Caută firma”.
+// S0 · Start + CUI: întrebarea, câmpul mare, „Caută firma”. Banda programului (doar pe S0)
+// o pune Calculator deasupra progresului.
 
 import { motion } from 'framer-motion';
 import { useState } from 'react';
 import { curataCui } from '@/motor/edrive/cui';
 import type { Ecran } from '@/scenariu/derulare';
-import { PROGRAM } from '@/scenariu/edrive';
-import { BandaProgram } from '../Rama';
 import { MOMENT, atinge, useMiscare } from '../miscare';
 import { Coloana, Ecou, Intrebare } from './parti';
 
@@ -23,7 +22,6 @@ export function EcranCui({ ecran, initial, laRaspuns }: { ecran: EcranC; initial
 
   return (
     <div>
-      <BandaProgram program={PROGRAM} />
       <Coloana className="pb-6 pt-5 sm:pt-10">
         <Ecou text={ecran.ecou} />
         <Intrebare text={ecran.text} explicatie={ecran.explicatie} />
