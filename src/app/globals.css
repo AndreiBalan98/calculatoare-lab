@@ -1,0 +1,40 @@
+@import "tailwindcss";
+
+/* Identitatea vizuală a dezvoltaredigitala.ro */
+@theme {
+  --color-bleumarin: #14213d;
+  --color-bleumarin-deschis: #24345a;
+  --color-auriu: #c9a227;
+  --color-auriu-deschis: #f6eccb;
+  --color-auriu-text: #8a6a12;
+  --color-hartie: #f8f6f1;
+  --color-text: #1d2433;
+  --color-text-slab: #5a6275;
+  --color-linie: #e3ddd0;
+  --color-rosu: #a4302a;
+  --color-rosu-deschis: #fbeceb;
+  --color-galben-deschis: #fdf5dc;
+
+  --font-serif: var(--font-source-serif), Georgia, serif;
+  --font-sans: var(--font-plex-sans), system-ui, sans-serif;
+}
+
+body {
+  background: var(--color-hartie);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+}
+
+:focus-visible {
+  outline: 3px solid var(--color-auriu);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

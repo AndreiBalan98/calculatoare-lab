@@ -1,0 +1,26 @@
+{
+  "ok": true,
+  "cui": "4",
+  "denumire": "DEMO MARE INDUSTRIE SA",
+  "adresa": "MUN. CLUJ-NAPOCA, STR. EXEMPLULUI NR. 4",
+  "forma_juridica": "SOCIETATE COMERCIALĂ PE ACȚIUNI",
+  "forma_organizare": "PERSOANA JURIDICA",
+  "caen": "2932",
+  "stare": "INREGISTRAT din data 12.03.2015",
+  "inactiv": false,
+  "radiat": false,
+  "data_inregistrare": "2015-03-12",
+  "judet": "CLUJ",
+  "judet_cod": "CJ",
+  "bilant": {
+    "an": 2025,
+    "angajati": 300,
+    "cifra_afaceri": 400000000,
+    "active": 310000000,
+    "datorii": 120000000,
+    "capitaluri": 150000000,
+    "capital_social": 2000000,
+    "profit_brut": 32000000,
+    "profit_net": 26000000
+  }
+}

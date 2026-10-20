@@ -1,0 +1,26 @@
+{
+  "ok": true,
+  "cui": "7",
+  "denumire": "DEMO INSOLVENȚĂ SRL",
+  "adresa": "MUN. BACĂU, STR. EXEMPLULUI NR. 7",
+  "forma_juridica": "SOCIETATE COMERCIALĂ CU RĂSPUNDERE LIMITATĂ",
+  "forma_organizare": "PERSOANA JURIDICA",
+  "caen": "6201",
+  "stare": "INSOLVENȚĂ din data 10.05.2025",
+  "inactiv": false,
+  "radiat": false,
+  "data_inregistrare": "2015-03-12",
+  "judet": "BACĂU",
+  "judet_cod": "BC",
+  "bilant": {
+    "an": 2025,
+    "angajati": 6,
+    "cifra_afaceri": 800000,
+    "active": 1200000,
+    "datorii": 2500000,
+    "capitaluri": -1300000,
+    "capital_social": 200,
+    "profit_brut": -400000,
+    "profit_net": -400000
+  }
+}

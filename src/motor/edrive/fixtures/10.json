@@ -1,0 +1,26 @@
+{
+  "ok": true,
+  "cui": "10",
+  "denumire": "DEMO INACTIVĂ SRL",
+  "adresa": "MUN. PIATRA NEAMȚ, STR. EXEMPLULUI NR. 10",
+  "forma_juridica": "SOCIETATE COMERCIALĂ CU RĂSPUNDERE LIMITATĂ",
+  "forma_organizare": "PERSOANA JURIDICA",
+  "caen": "4321",
+  "stare": "INREGISTRAT din data 12.03.2015",
+  "inactiv": true,
+  "radiat": false,
+  "data_inregistrare": "2015-03-12",
+  "judet": "NEAMȚ",
+  "judet_cod": "NT",
+  "bilant": {
+    "an": 2025,
+    "angajati": 3,
+    "cifra_afaceri": 650000,
+    "active": 410000,
+    "datorii": 120000,
+    "capitaluri": 250000,
+    "capital_social": 200,
+    "profit_brut": 52000,
+    "profit_net": 42250
+  }
+}

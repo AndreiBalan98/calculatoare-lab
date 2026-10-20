@@ -1,0 +1,26 @@
+{
+  "ok": true,
+  "cui": "8",
+  "denumire": "DEMO AGRO SRL",
+  "adresa": "COM. VORONA, STR. EXEMPLULUI NR. 8",
+  "forma_juridica": "SOCIETATE COMERCIALĂ CU RĂSPUNDERE LIMITATĂ",
+  "forma_organizare": "PERSOANA JURIDICA",
+  "caen": "0111",
+  "stare": "INREGISTRAT din data 12.03.2015",
+  "inactiv": false,
+  "radiat": false,
+  "data_inregistrare": "2015-03-12",
+  "judet": "BOTOȘANI",
+  "judet_cod": "BT",
+  "bilant": {
+    "an": 2025,
+    "angajati": 7,
+    "cifra_afaceri": 2400000,
+    "active": 3100000,
+    "datorii": 900000,
+    "capitaluri": 1700000,
+    "capital_social": 200,
+    "profit_brut": 192000,
+    "profit_net": 156000
+  }
+}

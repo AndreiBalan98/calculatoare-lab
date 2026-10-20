@@ -1,0 +1,26 @@
+{
+  "ok": true,
+  "cui": "6",
+  "denumire": "DEMO RADIATĂ SRL",
+  "adresa": "MUN. DOROHOI, STR. EXEMPLULUI NR. 6",
+  "forma_juridica": "SOCIETATE COMERCIALĂ CU RĂSPUNDERE LIMITATĂ",
+  "forma_organizare": "PERSOANA JURIDICA",
+  "caen": "6201",
+  "stare": "RADIERE din data 15.09.2023",
+  "inactiv": false,
+  "radiat": true,
+  "data_inregistrare": "2015-03-12",
+  "judet": "BOTOȘANI",
+  "judet_cod": "BT",
+  "bilant": {
+    "an": 2024,
+    "angajati": 0,
+    "cifra_afaceri": 0,
+    "active": 12000,
+    "datorii": 5000,
+    "capitaluri": 7000,
+    "capital_social": 200,
+    "profit_brut": 0,
+    "profit_net": 0
+  }
+}
