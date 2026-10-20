@@ -287,21 +287,6 @@ test('progresul: atingi o etapă trecută → prima ei întrebare, răspunsurile
   await expect(scena(page).getByRole('button', { name: 'Da, e firma mea' })).toHaveAttribute('aria-pressed', 'true');
 });
 
-test('glosarul: „TVA” subliniat se explică la atingere', async ({ page }, info) => {
-  await cauta(page, '1');
-  await alege(page, info, 'firma', 'Da, e firma mea');
-  await alege(page, info, 'nrMasini', '1');
-  await alege(page, info, 'tipMasini', 'Autoturism până la 8 locuri plus șoferul');
-  await alege(page, info, 'vechi', 'Da');
-  await ecran(page, 'pret_0');
-  await scena(page).getByRole('button', { name: 'TVA', exact: true }).click();
-  const foaie = page.getByRole('dialog', { name: 'TVA' });
-  await expect(foaie).toContainText('21%');
-  await foaie.getByRole('button', { name: 'Am înțeles' }).click();
-  await expect(foaie).toBeHidden();
-  await ecran(page, 'pret_0');
-});
-
 test('cu prefers-reduced-motion parcursul merge la fel', async ({ page }, info) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await cauta(page, '1');

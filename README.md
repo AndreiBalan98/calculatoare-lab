@@ -20,7 +20,7 @@ npm test             # Vitest: motorul e-DRIVE, inclusiv testarea diferențială
 npm run lint
 npm run build
 npm run test:e2e     # Playwright (Chromium), pe telefon 390×844 și desktop 1280×800
-CAPTURI=1 npm run test:e2e   # salvează și capturile (și video-ul pe telefon) în docs/capturi/T03/
+CAPTURI=1 npm run test:e2e   # salvează și capturile în docs/capturi/T04/ (alt director: CAPTURI_DIR=T05)
 ```
 
 `test:e2e` face singur build-ul și pornește serverul pe portul 3100, în modul simulat (`ANAF_MOCK=1`), pe telefon (390×844 și 360×740) și desktop (1280×800).

@@ -1,5 +1,5 @@
 # T04 · Două finisaje: progresul sub banda programului, glosarul la hover
-Stare: de făcut
+Stare: PR #4
 Depinde de: T03 (pe `main`)
 
 ## Scopul

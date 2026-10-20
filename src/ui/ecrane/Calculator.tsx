@@ -10,10 +10,9 @@ import type { RaspunsAnaf } from '@/motor/edrive/anaf';
 import { altCui, raspunde, toateUE } from '@/scenariu/actiuni';
 import type { CacheAnaf, Raspunsuri } from '@/scenariu/context';
 import { anteriorul, deruleaza, ecranul, progresEtape, urmatorul, type Derulare, type Ecran } from '@/scenariu/derulare';
-import { REZULTAT, SCENARIU } from '@/scenariu/edrive';
+import { PROGRAM, REZULTAT, SCENARIU } from '@/scenariu/edrive';
 import type { Etapa, Optiune } from '@/scenariu/tipuri';
-import { Antet, Subsol } from '../Rama';
-import { GlosarProvider } from '../Text';
+import { Antet, BandaProgram, Subsol } from '../Rama';
 import { useMiscare } from '../miscare';
 import { EcranCautare } from './EcranCautare';
 import { EcranCui } from './EcranCui';
@@ -42,7 +41,7 @@ export function Calculator() {
   const [umplere, setUmplere] = useState(0);
   const [trimisa, setTrimisa] = useState(false);
   const [foaie, setFoaie] = useState(false);
-  const { ecran: varianteEcran } = useMiscare();
+  const { ecran: varianteEcran, redus } = useMiscare();
   const istoric = useRef(0);
   const prima = useRef(true);
 
@@ -171,9 +170,26 @@ export function Calculator() {
   };
 
   return (
-    <GlosarProvider>
+    <>
       <div className="flex min-h-dvh flex-col">
         <Antet />
+        {/* banda programului doar pe S0, deasupra progresului; la plecare se strânge lin,
+            iar progresul urcă pe locul lui */}
+        <AnimatePresence initial={false}>
+          {ecran.tip === 'cui' && (
+            <motion.div
+              key="banda"
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={redus ? { duration: 0 } : { type: 'spring', stiffness: 260, damping: 32 }}
+              className="overflow-hidden"
+              data-banda-program
+            >
+              <BandaProgram program={PROGRAM} />
+            </motion.div>
+          )}
+        </AnimatePresence>
         <Progres
           umplere={ecran.tip === 'rezultat' ? 1 : umplere}
           curenta={ecran.etapa}
@@ -210,6 +226,6 @@ export function Calculator() {
           setTrimisa(true);
         }}
       />
-    </GlosarProvider>
+    </>
   );
 }

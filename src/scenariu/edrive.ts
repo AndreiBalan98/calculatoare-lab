@@ -423,6 +423,5 @@ export const TEXTE = {
   inapoi: '← Înapoi',
   maiPutine: '← 1–4',
   inapoiLaSume: '← înapoi la sumele rotunde',
-  glosarInchide: 'Am înțeles',
   ales: 'ales',
 };

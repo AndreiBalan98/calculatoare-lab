@@ -10,7 +10,7 @@ export async function captura(page: Page, info: TestInfo, nume: string, o: { des
   if (process.env.CAPTURI !== '1') return;
   if (info.project.name !== 'telefon' && !(o.desktop && info.project.name === 'desktop')) return;
   if (!o.imediat) await page.waitForTimeout(800); // să se termine mișcarea
-  await page.screenshot({ path: `docs/capturi/T03/${nume}-${info.project.name}.png`, fullPage: !!o.intreaga });
+  await page.screenshot({ path: `docs/capturi/${process.env.CAPTURI_DIR ?? 'T04'}/${nume}-${info.project.name}.png`, fullPage: !!o.intreaga });
 }
 
 export const scena = (page: Page) => page.locator('[data-ecran]');
