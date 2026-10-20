@@ -45,16 +45,16 @@ Mesajele de stare (din calculatoarele de pe site): roșu `#A12622` pe `#FDECEC`;
 
 Scopul: interfața **respiră și reacționează**; nimic nu apare sau dispare brusc. Biblioteca: **Framer Motion** (`AnimatePresence`, `layout`, `layoutId`, resorturi).
 
-**Principiile:**
-1. **Totul intră și iese animat.** Intrare: opacitate 0 → 1, deplasare 8–12px de jos, ușoară estompare (blur 4px → 0). Ieșire: invers, mai rapid. Fără apariții bruște.
-2. **Resorturi, nu curbe liniare** (ex. `stiffness ~260–320, damping ~26–30`); durate scurte (150–350 ms). Nimic lent sau teatral.
-3. **Opțiunile apar în cascadă** (decalaj 40–60 ms între ele).
-4. **Alegerea se transformă, nu dispare:** butonul apăsat devine „răspunsul” (prin `layoutId`, se mută și se micșorează în locul lui), celelalte opțiuni se strâng și se estompează. Întrebarea trecută se comprimă într-un rând scurt.
-5. **Spațiul se reașază lin** (`layout`): când ceva apare sau dispare, restul alunecă, nu sare.
-6. **Ritm de conversație:** înainte de mesajul următor, un indicator „scrie…” (trei puncte care pulsează), **400–700 ms**, proporțional cu lungimea mesajului. Nu la fiecare micro-pas: doar când „vorbește” calculatorul.
-7. **Cifrele numără:** scorul și sumele cresc animat (≈600 ms, decelerat) de la valoarea veche la cea nouă. La un câștig de puncte, un mic „+20” auriu urcă și se estompează lângă scor.
+**Principiile** (aplicate pe modelul „un ecran = o întrebare”, `docs/flux-edrive.md` v2):
+1. **Ecranul se schimbă, pagina nu crește.** Întrebarea curentă pleacă (opacitate 1 → 0, urcă 16–24px, blur 0 → 4px, ~220ms) și vine următoarea (opacitate 0 → 1, de jos 16–24px, blur 4px → 0, resort). La **Înapoi**, direcția e inversă. Fără derulare între întrebări.
+2. **Resorturi, nu curbe liniare** (ex. `stiffness ~260–320, damping ~26–30`); durate scurte (150–350ms). Nimic lent sau teatral.
+3. **Ordinea intrării pe ecran:** ecoul (dacă e) → eticheta și întrebarea → opțiunile **în cascadă** (decalaj 40–60ms) → antrenorul și nota.
+4. **Alegerea se vede, apoi ecranul pleacă:** butonul apăsat se umple `primary` cu bifă (~150ms), celelalte se estompează; după ~350ms, tranziția spre ecranul următor.
+5. **Transformări în loc (în același ecran):** „Mai multe” și „Altă sumă” își transformă opțiunile animat (`layout`, `AnimatePresence`), fără ecran nou.
+6. **Progresul e viu:** linia se umple pe un resort la fiecare răspuns; etapa curentă are un inel care respiră discret (scale 1 → 1,15, opacitate, ~2s, infinit, foarte subtil).
+7. **Cifrele numără:** scorul și sumele din progres și din rezultat cresc animat (≈600ms, decelerat) de la valoarea veche la cea nouă. La un câștig de puncte, un „+20” auriu urcă și se estompează lângă scor.
 8. **Răspuns tactil:** butoanele se micșorează puțin la apăsare (scale 0,97); pe telefon, o vibrație foarte scurtă (`navigator.vibrate(8)`, unde există).
-9. **Derularea urmărește conversația:** după fiecare pas, derulare lină astfel încât întrebarea nouă să fie vizibilă, cu focusul pe primul ei element interactiv (fără salturi bruște ale tastaturii pe telefon).
-10. **`prefers-reduced-motion`:** fără deplasări, blur și numărători; doar estompări scurte și schimbări instant.
+9. **Focusul urmează ecranul:** după fiecare tranziție, focusul pe primul element interactiv al ecranului nou (`preventScroll`); câmpurile numerice deschid tastatura numerică fără să împingă scena.
+10. **`prefers-reduced-motion`:** fără deplasări, blur, pulsații și numărători; doar estompări scurte (≤120ms) și schimbări instant.
 
-**Ce evităm:** confetti, sărituri exagerate, rotiri, animații care întârzie omul. Organic înseamnă **fluid și calm**, nu jucăuș.
+**Ce evităm:** fire de chat, baloane, avatare, indicatoare „scrie…”, confetti, sărituri exagerate, rotiri, animații care întârzie omul. Organic înseamnă **fluid și calm**, nu jucăuș.
