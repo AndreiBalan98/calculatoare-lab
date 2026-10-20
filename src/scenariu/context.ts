@@ -42,8 +42,10 @@ export interface Context {
   masini: Masina[];
   /** prețul fiecărei mașini (null = încă nu știm) */
   preturi: (number | null)[];
-  /** calc() pe tot ce știm până aici (doar mașinile cu preț) */
+  /** calc() pe tot ce știm până aici (mașinile cu preț; UE neștiut = nu) */
   rezultat: RezultatEdrive;
+  /** punctajul de până acum: doar mașinile la care știm și prețul, și răspunsul UE */
+  scor: number;
 }
 
 /** „~25000” (valoare rotundă), „25000” (exactă). */
@@ -53,19 +55,31 @@ export function pretDin(v: string | undefined): number | null {
   return Number.isFinite(n) && n > 0 ? n : null;
 }
 
-function numar(r: Raspunsuri, id: string): number {
-  const v = r[id];
-  if (v === 'mai') return Number(r[id + 'Multe'] || 0);
-  return Number(v || 0);
+/** Câte mașini schimbă omul (0 = încă nu știm). */
+export function numarMasini(r: Raspunsuri): number {
+  const n = Number(r.nrMasini || 0);
+  return Number.isInteger(n) && n > 0 ? n : 0;
 }
 
+/**
+ * Lista mașinilor, din „câte mașini” și „ce fel”: întâi autoturismele, apoi microbuzele.
+ * Goală cât timp nu știm încă felul lor.
+ */
 export function masiniDin(r: Raspunsuri): Masina[] {
-  const n1 = numar(r, 'nrM1');
-  const n2 = r.nrM2 === undefined ? 0 : numar(r, 'nrM2');
-  const total = n1 + n2;
+  const n = numarMasini(r);
+  const tip = r.tipMasini;
+  let n2: number | null = null;
+  if (tip === 'M1' || tip === 'toateM1') n2 = 0;
+  else if (tip === 'M2' || tip === 'toateM2') n2 = n;
+  else if (tip === 'mixt') {
+    const k = Number(r.nrMicrobuze || 0);
+    if (k >= 1 && k < n) n2 = k;
+  }
+  if (!n || n2 === null) return [];
+  const n1 = n - n2;
   const lista: Masina[] = [];
-  for (let i = 0; i < n1; i++) lista.push({ index: lista.length, cat: 'M1', nrInCat: i + 1, totalInCat: n1, total });
-  for (let i = 0; i < n2; i++) lista.push({ index: lista.length, cat: 'M2', nrInCat: i + 1, totalInCat: n2, total });
+  for (let i = 0; i < n1; i++) lista.push({ index: lista.length, cat: 'M1', nrInCat: i + 1, totalInCat: n1, total: n });
+  for (let i = 0; i < n2; i++) lista.push({ index: lista.length, cat: 'M2', nrInCat: i + 1, totalInCat: n2, total: n });
   return lista;
 }
 
@@ -122,7 +136,28 @@ export function contextDin(r: Raspunsuri, cache: CacheAnaf): Context {
     masini,
     preturi,
     rezultat: calc(date),
+    scor: scorCuPrimele(date, r, veh.length),
   };
+}
+
+/** Punctajul cu primele k mașini, dar doar cele la care s-a răspuns și la UE. */
+function scorCuPrimele(date: DateEdrive, r: Raspunsuri, k: number): number {
+  let n = 0;
+  while (n < k && r[`ue_${n}`] !== undefined) n++;
+  return calc({ ...date, veh: date.veh.slice(0, n) }).total;
+}
+
+/** Punctajul înainte de răspunsul UE la mașina i (pentru ecoul „+20”). */
+export function scorInainteDeUE(c: Context, i: number): number {
+  return calc({ ...c.date, veh: c.date.veh.slice(0, i) }).total;
+}
+
+/** Diferența peste plafon pentru o singură mașină (din motor). */
+export function pestePlafon(c: Context, i: number): number {
+  const v = c.date.veh[i];
+  if (!v) return 0;
+  const r = calc({ ...c.date, veh: [v] });
+  return r.fara - r.ajutor;
 }
 
 /** Rezultatul dacă toate mașinile ar fi asamblate în UE (pentru antrenor). */

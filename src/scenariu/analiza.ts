@@ -48,15 +48,18 @@ export interface StareConversatie {
 }
 
 export function construiesteAnaliza({ derulare, contact, acum = new Date() }: StareConversatie): Analiza {
-  const { ctx, elemente } = derulare;
+  const { ctx, ecrane } = derulare;
   const r = ctx.rezultat;
   const raspunsuri: Analiza['raspunsuri'] = [];
-  for (const e of elemente) {
+  for (const e of ecrane) {
     if (e.tip === 'cui' && e.raspuns) raspunsuri.push({ intrebare: faraMarcaje(e.text), raspuns: e.raspuns });
-    if (e.tip === 'cardFirma' && e.raspuns) raspunsuri.push({ intrebare: faraMarcaje(e.intrebare), raspuns: e.raspuns.eticheta });
-    if (e.tip === 'intrebare' && e.raspuns) {
+    if (e.tip === 'cardFirma' && e.raspuns) {
+      const o = e.optiuni.find((x) => x.valoare === e.raspuns);
+      raspunsuri.push({ intrebare: faraMarcaje(e.text), raspuns: o?.raspuns ?? o?.eticheta ?? e.raspuns });
+    }
+    if (e.tip === 'intrebare' && e.raspunsText) {
       const intrebare = [e.eticheta, faraMarcaje(e.text)].filter(Boolean).join(': ');
-      raspunsuri.push({ intrebare, raspuns: e.raspuns.eticheta });
+      raspunsuri.push({ intrebare, raspuns: e.raspunsText });
     }
   }
   return {

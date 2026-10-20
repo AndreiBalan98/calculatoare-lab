@@ -49,8 +49,8 @@ export const GLOSAR: Record<string, Termen> = {
     titlu: 'TVA',
     text: `Taxa pe valoarea adăugată, ${Math.round(CONFIG.tva * 100)}%. Programul finanțează prețul fără TVA; TVA-ul îl plătește firma.`,
   },
-  minimis: {
-    titlu: 'Minimis',
-    text: 'Ajutor de stat de valoare mică: o firmă îl poate primi doar până la un plafon, socotit pe 3 ani.',
+  plafon: {
+    titlu: 'Plafonul',
+    text: `Suma maximă finanțată pe un autoturism: ${euro(CONFIG.plafonM1)} fără TVA. Dacă mașina costă mai mult, diferența o plătește firma. La microbuz nu există plafon.`,
   },
 };
