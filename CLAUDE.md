@@ -9,13 +9,14 @@ Primul calculator: **e-DRIVE** (finanțare pentru mașini electrice, IMM-uri).
 - **Planificarea se face în altă parte** (un chat de planificare). Tu, Claude Code, **execuți task-uri** din `tasks/` (format și reguli: `tasks/README.md`).
 - Un task = **o ramură** din `main` (`tNN-nume-scurt` sau ramura atribuită de sesiune) → commit-uri → **Pull Request** spre `main` cu **raportul** cerut în `tasks/README.md`. **Nu faci merge** singur.
 - Dacă ceva din task e neclar sau contrazice documentele: alegi varianta cea mai rezonabilă, o scrii la „Presupuneri” în raport și mergi mai departe. Nu inventa reguli de finanțare.
-- Nu modifica `docs/flux-edrive.md` și `docs/referinta/` decât dacă task-ul o cere explicit.
+- Nu modifica `docs/flux-edrive.md`, `docs/design.md` și `docs/referinta/` decât dacă task-ul o cere explicit.
 
 ## Documentele
 
 | Fișier | Ce e |
 |---|---|
 | `docs/flux-edrive.md` | **Specificația experienței** e-DRIVE (pașii, textele, principiile). Sursa de adevăr pentru UX |
+| `docs/design.md` | **Identitatea exactă a site-ului** (culori, fonturi, forme, rama paginii) și **principiile mișcării** („viu și organic”). Valabil pentru toate calculatoarele |
 | `docs/referinta/edrive-motor-wp.js` | Motorul de pe site (JS ES5), de portat **identic** |
 | `docs/referinta/anaf-api.md` | Contractul API-ului firmei (proxy-ul ANAF de pe site) |
 | `tasks/README.md` | Procesul și formatul task-urilor și al raportului |
@@ -47,6 +48,6 @@ src/
 
 - **Textele din interfață: română, cu diacritice corecte** (ș, ț cu virgulă, nu cu sedilă). Ton cald, simplu, la persoana a II-a („tu”), propoziții scurte.
 - Numere în format românesc: `25.000 €`, `12,5`; spațiu nedespărțit între număr și `€`.
-- Identitatea vizuală a site-ului: bleumarin `#14213D`, accent auriu, fonturi **Source Serif 4** (titluri) + **IBM Plex Sans** (text). Mobile-first; telefonul contează cel mai mult.
+- Identitatea vizuală: **exact tokenii din `docs/design.md`** (nu se inventează culori). Mobile-first; telefonul contează cel mai mult.
 - Accesibilitate: butoane reale, focus vizibil, `aria-live` pentru mesajele noi, `prefers-reduced-motion`.
 - Date de contact: telefon `+40 749 589 848`, email `contact@dezvoltaredigitala.ro`.
