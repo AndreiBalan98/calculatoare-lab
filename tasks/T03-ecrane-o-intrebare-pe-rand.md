@@ -1,5 +1,5 @@
 # T03 · e-DRIVE pe ecrane: o întrebare pe rând, progresul mereu sus
-Stare: de făcut
+Stare: PR #3
 Depinde de: T02 (pe `main`)
 
 ## De ce există acest task

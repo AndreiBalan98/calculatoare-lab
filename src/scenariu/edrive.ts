@@ -1,17 +1,20 @@
-// Scenariul conversației e-DRIVE: pașii, textele, butoanele, ramificațiile.
+// Scenariul e-DRIVE: un ecran = o întrebare (docs/flux-edrive.md v2). Pașii, textele, butoanele.
 //
 // CUM MODIFICI
 // - Un text: schimbă-l aici. **așa** = îngroșat; [[cuvânt]] sau [[cuvânt afișat|cheie]] = cuvânt
 //   subliniat cu explicație (explicațiile sunt în glosar.ts).
+// - Pe un ecran de întrebare: `ecou` (linia aurie care reacționează la răspunsul de dinainte),
+//   `eticheta`, `text` (întrebarea), `explicatie`, `optiuni`, `antrenor`, `nota`; `etapa` = unde
+//   stă în progresul de sus (firma / masini / pret / rezultat).
 // - Ordinea: mută pasul în lista SCENARIU. Fiecare pas vede doar răspunsurile de dinaintea lui.
-// - O opțiune: adaugă / scoate din `optiuni`. `valoare` e ce intră în calcul (la angajați și
-//   cifra de afaceri, chiar numărul dat motorului), `eticheta` e textul de pe buton.
+// - O opțiune: `valoare` e ce intră în calcul (la angajați și cifra de afaceri, chiar numărul
+//   dat motorului), `eticheta` e textul de pe buton, `detaliu` un rând mic sub el.
 // - Când apare un pas: `cand`. Cifrele vin mereu din motor, prin `c` (contextul): c.evaluare,
-//   c.rezultat, c.date (vezi context.ts). Nu scrie reguli de finanțare aici.
+//   c.rezultat, c.scor (vezi context.ts). Nu scrie reguli de finanțare aici.
 
 import { CONFIG } from '@/motor/edrive/config';
-import { rezultatToateUE, type Context, type Masina } from './context';
-import { euro, lei, localitate, puncte } from './format';
+import { numarMasini, pestePlafon, rezultatToateUE, scorInainteDeUE, type Context, type Masina } from './context';
+import { euro, puncte } from './format';
 import type { Optiune, Pas, Scenariu } from './tipuri';
 
 export const CONTACT = {
@@ -20,7 +23,7 @@ export const CONTACT = {
   email: 'contact@dezvoltaredigitala.ro',
 };
 
-/** Banda programului (sus, ca pe site). */
+/** Banda programului (doar pe primul ecran). */
 export const PROGRAM = {
   categorie: 'Fonduri nerambursabile',
   stare: 'Anunțat',
@@ -40,116 +43,123 @@ const DE_CE: Record<string, string> = {
   'Întreprindere mijlocie': 'pentru că firma ta e [[întreprindere mijlocie|intreprindere mijlocie]]',
 };
 
+/** 2 → „două” (mașini). */
+const NUMERALE = ['', 'o', 'două', 'trei', 'patru', 'cinci', 'șase', 'șapte', 'opt', 'nouă', 'zece'];
+const masiniText = (n: number) => (n === 1 ? 'o mașină' : `${NUMERALE[n] ?? n} mașini`);
+const autoturismeText = (n: number) => (n === 1 ? 'un autoturism' : `${NUMERALE[n] ?? n} autoturisme`);
+const microbuzeText = (n: number) => (n === 1 ? 'un microbuz' : `${NUMERALE[n] ?? n} microbuze`);
+
 const PRETURI: Record<Masina['cat'], number[]> = {
   M1: [20_000, 25_000, 30_000, 35_000, 45_000],
   M2: [35_000, 45_000, 60_000],
 };
 
-const numarMasini = (c: Context, id: 'nrM1' | 'nrM2') =>
-  c.r[id] === 'mai' ? Number(c.r[id + 'Multe'] || 0) : Number(c.r[id] || 0);
-
-function optiuniNumar(min: number, max: number, cuMaiMulte: boolean): Optiune[] {
+const cifre = (de: number, pana: number): Optiune[] => {
   const o: Optiune[] = [];
-  for (let n = min; n <= Math.min(3, max); n++) o.push({ valoare: String(n), eticheta: String(n) });
-  if (cuMaiMulte && max >= 4) o.push({ valoare: 'mai', eticheta: 'mai multe' });
+  for (let n = de; n <= pana; n++) o.push({ valoare: String(n), eticheta: String(n) });
   return o;
-}
+};
 
-function optiuniMulte(max: number): Optiune[] {
-  const o: Optiune[] = [];
-  for (let n = 4; n <= max; n++) o.push({ valoare: String(n), eticheta: String(n) });
-  return o;
-}
-
-const numeMasina = (m: Masina) =>
-  (m.cat === 'M1' ? 'Autoturismul' : 'Microbuzul') + (m.totalInCat > 1 ? ` ${m.nrInCat} din ${m.totalInCat}` : '');
+const etichetaMasina = (m: Masina) => {
+  const cat = m.cat === 'M1' ? 'autoturism' : 'microbuz';
+  return m.total === 1 ? `Mașina electrică · ${cat}` : `Mașina electrică ${m.index + 1} din ${m.total} · ${cat}`;
+};
 
 function pasiMasina(m: Masina): Pas[] {
   const i = m.index;
-  const eticheta = (c: Context) => (c.masini.length > 1 ? numeMasina(m) : null);
   return [
+    // P1 · prețul
     {
       id: `pret_${i}`,
       tip: 'suma',
-      eticheta,
-      text: 'Cam cât costă mașina electrică, fără [[TVA|tva]]?',
-      scurt: (c) => (c.masini.length > 1 ? `${numeMasina(m)}: prețul` : 'Prețul fără TVA'),
-      optiuni: () => {
+      etapa: 'pret',
+      ecou: (c) => {
+        if (i === 0) return 'Acum, mașinile electrice noi.';
+        const v = c.r[`ue_${i - 1}`];
+        if (v === 'da') return c.scor > scorInainteDeUE(c, i - 1) ? `Bun! Asta înseamnă **${BONUS} de puncte** în plus.` : 'Bun, și asta e asamblată în UE.';
+        if (v === 'nustiu') return 'Nicio grijă, verificăm împreună modelul.';
+        return 'Am notat.';
+      },
+      eticheta: etichetaMasina(m),
+      text: 'Cam cât costă, fără [[TVA|tva]]?',
+      optiuni: (c) => {
         const o: Optiune[] = [];
-        if (m.nrInCat > 1) o.push({ valoare: 'aceeasi', eticheta: 'La fel ca prima' });
+        const prima = c.masini.find((x) => x.cat === m.cat);
+        if (prima && prima.index !== i && c.preturi[prima.index] !== null) {
+          o.push({ valoare: 'aceeasi', eticheta: `La fel ca mașina ${prima.index + 1} · ${euro(c.preturi[prima.index] ?? 0)}` });
+        }
         for (const p of PRETURI[m.cat]) o.push({ valoare: `~${p}`, eticheta: `~${euro(p)}` });
         return o;
       },
       nota: m.cat === 'M1'
         ? `Finanțarea e de cel mult ${euro(CONFIG.plafonM1)} pe autoturism. Peste, diferența o plătește firma.`
         : 'La microbuz nu există plafon pe vehicul.',
-      altaSuma: { eticheta: 'Altă sumă', placeholder: 'ex. 28.500', buton: 'Gata' },
+      altaSuma: { eticheta: 'Altă sumă', placeholder: 'ex. 28.500', buton: 'Gata', eroare: 'Scrie suma în euro, fără TVA.' },
       raspuns: (v, c) => {
         if (v === 'aceeasi') {
           const prima = c.masini.find((x) => x.cat === m.cat);
-          return `la fel ca prima (${euro((prima && c.preturi[prima.index]) ?? 0)})`;
+          return `la fel ca mașina ${(prima?.index ?? 0) + 1} (${euro((prima && c.preturi[prima.index]) ?? 0)})`;
         }
         const n = Number(v.replace(/^~/, ''));
         return v.startsWith('~') ? `cam ${euro(n)}` : euro(n);
       },
-      // Peste plafon: sfatul motorului pentru această mașină („Mașina 1 trece de 30.000 €…”).
-      reactie: (_, c) => c.rezultat.tips.find((t) => t.text.startsWith(`Mașina ${i + 1} `))?.text ?? null,
     },
+    // P2 · UE
     {
       id: `ue_${i}`,
       tip: 'alegere',
-      eticheta,
-      text: 'E [[asamblată în UE|ue]]?',
-      scurt: (c) => (c.masini.length > 1 ? `${numeMasina(m)}: asamblat în UE` : 'Asamblată în UE'),
+      etapa: 'pret',
+      ecou: (c) => {
+        const peste = pestePlafon(c, i);
+        return peste > 0 ? `Peste [[plafon]], diferența de **${euro(peste)}** o plătește firma.` : null;
+      },
+      eticheta: etichetaMasina(m),
+      text: 'E [[asamblată în Uniunea Europeană|ue]]?',
       optiuni: [
         { valoare: 'da', eticheta: 'Da' },
         { valoare: 'nu', eticheta: 'Nu' },
         { valoare: 'nustiu', eticheta: 'Nu știu' },
       ],
-      antrenor: (c) => {
-        if (i === 0) return `Dacă alegi un model [[asamblat în UE|ue]], primești **${BONUS} de puncte** în plus.`;
-        const toateDa = c.masini.slice(0, i).every((x) => c.r[`ue_${x.index}`] === 'da');
-        return toateDa ? `Ca să primești cele ${BONUS} de puncte, toate mașinile trebuie să fie asamblate în UE.` : null;
-      },
-      reactie: (v, c) => {
-        if (v === 'nustiu') return `Nicio grijă, verificăm împreună modelul. Deocamdată nu socotesc cele ${BONUS} de puncte.`;
-        const inainte = c.masini.slice(0, i).every((x) => c.r[`ue_${x.index}`] === 'da');
-        if (v === 'nu' && i > 0 && inainte) return `Atunci cele ${BONUS} de puncte nu se mai socotesc: se dau doar dacă toate mașinile sunt asamblate în UE.`;
-        if (v === 'da' && c.rezultat.p2 > 0 && inainte) return i === 0 ? `Bun! Asta înseamnă **${BONUS} de puncte** în plus.` : null;
-        return null;
-      },
+      antrenor: (c) => `Dacă alegi un model asamblat în UE, primești **${BONUS} de puncte în plus**.${c.masini.length > 1 ? ' Contează să fie toate asamblate în UE.' : ''}`,
     },
   ];
 }
 
+const OPRIRE_FIRMA = {
+  tip: 'oprire' as const,
+  etapa: 'firma' as const,
+  titlu: 'Din păcate, firma nu poate aplica la e-DRIVE.',
+  motive: (c: Context) => c.evaluare.motive,
+  text: 'Hai să vorbim: poate găsim împreună altă finanțare potrivită.',
+  butoane: [SUNA, ALT_CUI],
+};
+
 export const SCENARIU: Scenariu = [
-  // 0 · Salutul și CUI-ul
+  // S0 · Start + CUI (S1, căutarea, e starea de după)
   {
     id: 'cui',
     tip: 'cui',
-    text: 'Salut! Hai să vedem cât poate primi firma ta pentru mașini electrice. Îmi spui CUI-ul?',
-    scurt: 'CUI-ul firmei',
-    eticheta: 'CUI-ul firmei',
+    etapa: 'firma',
+    text: 'Hai să vedem cât poate primi firma ta.',
+    explicatie: 'Scrie CUI-ul firmei. Luăm restul datelor de la ANAF.',
+    campEticheta: 'CUI-ul firmei',
     placeholder: 'ex. RO12345678',
-    buton: 'Caută',
+    buton: 'Caută firma',
     cautare: 'Caut firma la ANAF…',
-    eroare: 'CUI-ul nu pare corect. Verifică cifrele și încearcă din nou.',
+    eroare: 'CUI-ul nu pare corect. Verifică cifrele.',
     reseteaza: ['firma', 'corectez', 'forma', 'angajati', 'cifra'],
   },
 
-  // 1 · Firma
+  // S2 · Firma găsită
   {
     id: 'firma',
     tip: 'cardFirma',
-    text: (c) => {
-      const loc = localitate(c.firma?.adresa, c.firma?.judet);
-      return `Am găsit-o: **${c.firma?.denumire || `CUI ${c.cui}`}**${loc ? `, din ${loc}` : ''}.`;
-    },
-    intrebare: 'Asta e firma ta?',
-    scurt: 'E firma ta?',
+    etapa: 'firma',
+    ecou: 'Am găsit-o.',
+    text: 'Asta e firma ta?',
     optiuni: [
-      { valoare: 'da', eticheta: 'Da' },
-      { valoare: 'corectez', eticheta: 'Nu, corectez' },
+      { valoare: 'da', eticheta: 'Da, e firma mea' },
+      { valoare: 'corectez', eticheta: 'Nu' },
     ],
     etichete: {
       localitatea: 'Localitatea',
@@ -157,61 +167,31 @@ export const SCENARIU: Scenariu = [
       angajatii: 'Angajați',
       necunoscut: 'nu știm încă',
       neImm: 'peste pragurile IMM',
-      cifre: 'Cifrele din bilanț',
-      cifreAscunde: 'Ascunde cifrele',
-      cifreLista: (c) => {
-        const d = c.dinAnaf;
-        if (!d || d.an === null) return [];
-        const rand = (eticheta: string, v: number | null) => ({ eticheta, valoare: v === null || Number.isNaN(v) ? '—' : lei(v) });
-        return [
-          rand(`Cifra de afaceri (${d.an})`, d.ca),
-          rand('Active', d.act),
-          rand('Datorii', d.dat),
-          rand('Capitaluri proprii', d.cap),
-        ];
-      },
-      corecteaza: 'Nu mai sunt la zi? Corectează',
     },
-    corecteaza: { raspuns: 'corectez', urmatorul: { pas: 'corectez', valoare: 'cifre' } },
   },
+  // S3 · Ce nu se potrivește
   {
     id: 'corectez',
     tip: 'alegere',
+    etapa: 'firma',
     cand: (c) => c.r.firma === 'corectez',
     text: 'Ce nu se potrivește?',
-    scurt: 'Ce nu se potrivește',
     optiuni: [
       { valoare: 'cui', eticheta: 'Am greșit CUI-ul', actiune: { tip: 'altCui' } },
       { valoare: 'cifre', eticheta: 'Cifrele nu mai sunt la zi' },
     ],
   },
-  {
-    id: 'oprireFirma',
-    tip: 'oprire',
-    cand: (c) => c.evaluare.motive.length > 0 && c.r.corectez !== 'cifre',
-    titlu: 'Din păcate, firma nu poate aplica la e-DRIVE.',
-    motive: (c) => c.evaluare.motive,
-    text: 'Hai să vorbim: poate găsim împreună altă finanțare potrivită.',
-    butoane: [SUNA, ALT_CUI],
-  },
+  // X1 · oprire după ANAF
+  { id: 'oprireFirma', ...OPRIRE_FIRMA, cand: (c) => c.evaluare.motive.length > 0 && c.r.corectez !== 'cifre' },
 
-  // Fără date de la ANAF (sau cifre vechi): întrebările minime
-  {
-    id: 'faraDate',
-    tip: 'mesaj',
-    cand: (c) => c.faraForma || c.faraCifre,
-    text: (c) => {
-      if (c.r.corectez === 'cifre') return 'Bine. Spune-mi cum arată firma acum și refac socoteala.';
-      if (c.firma && !c.faraForma) return 'Nu găsesc bilanțul firmei la ANAF. Îmi spui tu câteva lucruri și mergem mai departe.';
-      return 'Nu găsesc datele firmei acum. Îmi spui tu câteva lucruri și mergem mai departe.';
-    },
-  },
+  // F1–F3 · Firma fără date (doar când e nevoie)
   {
     id: 'forma',
     tip: 'alegere',
+    etapa: 'firma',
     cand: (c) => c.faraForma,
+    ecou: (c) => (c.firma ? 'Nu găsesc forma juridică a firmei. Îmi spui tu?' : 'Nu găsesc datele firmei acum. Îmi spui tu câteva lucruri.'),
     text: 'Ce formă juridică are firma?',
-    scurt: 'Forma juridică',
     optiuni: [
       { valoare: 'soc', eticheta: 'SRL sau SA' },
       { valoare: 'pfa', eticheta: 'PFA, II sau IF' },
@@ -221,25 +201,30 @@ export const SCENARIU: Scenariu = [
   {
     id: 'angajati',
     tip: 'alegere',
+    etapa: 'firma',
     cand: (c) => c.faraCifre,
+    ecou: (c) => {
+      if (c.r.forma !== undefined) return null; // ecoul a fost pe ecranul formei
+      if (c.r.corectez === 'cifre') return 'Bine. Spune-mi cum arată firma acum.';
+      return 'Nu găsesc bilanțul firmei la ANAF. Îmi spui tu câteva lucruri.';
+    },
     text: 'Câți angajați are firma?',
-    scurt: 'Angajați',
     // valoarea = numărul pe care îl primește motorul
     optiuni: [
       { valoare: '5', eticheta: '0–9' },
       { valoare: '30', eticheta: '10–49' },
       { valoare: '150', eticheta: '50–249' },
-      { valoare: '300', eticheta: '250 sau mai mulți', raspuns: '250 sau mai mulți' },
+      { valoare: '300', eticheta: '250 sau mai mulți' },
     ],
-    nota: (c) => (c.r.corectez === 'cifre' && c.dinAnaf?.ang != null && c.dinAnaf.an !== null
+    nota: (c) => (c.dinAnaf?.ang != null && !Number.isNaN(c.dinAnaf.ang) && c.dinAnaf.an !== null
       ? `La ANAF, în bilanțul pe ${c.dinAnaf.an}: ${c.dinAnaf.ang} angajați.` : null),
   },
   {
     id: 'cifra',
     tip: 'alegere',
+    etapa: 'firma',
     cand: (c) => c.faraCifre,
     text: 'Cifra de afaceri de anul trecut?',
-    scurt: 'Cifra de afaceri',
     // valoarea = cifra de afaceri în lei pe care o primește motorul (cu cursul implicit)
     optiuni: [
       { valoare: '2000000', eticheta: 'sub 10 mil. lei' },
@@ -247,132 +232,120 @@ export const SCENARIU: Scenariu = [
       { valoare: '150000000', eticheta: '50–250 mil. lei' },
       { valoare: '400000000', eticheta: 'peste 250 mil. lei' },
     ],
-    nota: (c) => (c.r.corectez === 'cifre' && c.dinAnaf?.ca != null && c.dinAnaf.an !== null
-      ? `La ANAF, pe ${c.dinAnaf.an}: ${lei(c.dinAnaf.ca)}.` : null),
+    nota: (c) => (c.dinAnaf?.ca != null && !Number.isNaN(c.dinAnaf.ca) && c.dinAnaf.an !== null
+      ? `La ANAF, pe ${c.dinAnaf.an}: ${(c.dinAnaf.ca / 1_000_000).toLocaleString('ro-RO', { maximumFractionDigits: 1 })} mil. lei.` : null),
   },
+  // X1 · oprire după răspunsurile omului
+  { id: 'oprireDate', ...OPRIRE_FIRMA, cand: (c) => c.evaluare.motive.length > 0 },
+
+  // M1 · Câte mașini
   {
-    id: 'oprireDate',
-    tip: 'oprire',
-    cand: (c) => c.evaluare.motive.length > 0,
-    titlu: 'Din păcate, firma nu poate aplica la e-DRIVE.',
-    motive: (c) => c.evaluare.motive,
-    text: 'Hai să vorbim: poate găsim împreună altă finanțare potrivită.',
-    butoane: [SUNA, ALT_CUI],
-  },
-  {
-    id: 'pornire',
-    tip: 'mesaj',
-    cand: (c) => c.evaluare.incadrare.status === 'imm',
-    text: (c) => {
+    id: 'nrMasini',
+    tip: 'alegere',
+    etapa: 'masini',
+    ecou: (c) => {
       const i = c.evaluare.incadrare;
       if (i.status !== 'imm') return null;
       return `Pornești cu **${puncte(i.puncte)}**, ${DE_CE[i.marime.nume] ?? `ca ${i.marime.nume.toLowerCase()}`}.`;
     },
+    eticheta: 'Mașinile',
+    text: 'Câte mașini pe benzină sau motorină vrei să schimbi cu mașini electrice?',
+    optiuni: cifre(1, CONFIG.maxVehicule),
+    grila: true,
+    maiMulte: { eticheta: 'Mai multe', de: 5 },
+    nota: 'Fiecare mașină electrică nouă înlocuiește una veche, a firmei.',
   },
+  // M2 · Ce fel de mașini
   {
-    id: 'avertismente',
-    tip: 'mesaje',
-    fel: 'avertisment',
-    texte: (c) => c.evaluare.avert,
-  },
-
-  // 2 · Mașinile vechi
-  {
-    id: 'masiniVechi',
-    tip: 'mesaj',
-    text: 'Acum, mașinile pe care le schimbi.',
-  },
-  {
-    id: 'nrM1',
+    id: 'tipMasini',
     tip: 'alegere',
-    text: 'Câte [[autoturisme|autoturism]] pe benzină sau motorină vrei să înlocuiești?',
-    scurt: 'Autoturisme de înlocuit',
-    optiuni: optiuniNumar(0, CONFIG.maxVehicule, true),
+    etapa: 'masini',
+    ecou: (c) => `Bun, ${masiniText(numarMasini(c.r))}.`,
+    text: (c) => (numarMasini(c.r) === 1 ? 'Ce fel de mașină e?' : 'Ce fel de mașini sunt?'),
+    explicatie: 'Mașina electrică nouă va fi din aceeași categorie: [[autoturism]] în locul unui autoturism, [[microbuz]] în locul unui microbuz.',
+    optiuni: (c) => (numarMasini(c.r) === 1
+      ? [
+          { valoare: 'M1', eticheta: 'Autoturism', detaliu: 'până la 8 locuri plus șoferul' },
+          { valoare: 'M2', eticheta: 'Microbuz', detaliu: 'peste 8 locuri plus șoferul' },
+        ]
+      : [
+          { valoare: 'toateM1', eticheta: 'Toate sunt autoturisme' },
+          { valoare: 'toateM2', eticheta: 'Toate sunt microbuze' },
+          { valoare: 'mixt', eticheta: 'Și autoturisme, și microbuze' },
+        ]),
   },
+  // M3 · Câte microbuze (doar la „și, și”)
   {
-    id: 'nrM1Multe',
+    id: 'nrMicrobuze',
     tip: 'alegere',
-    cand: (c) => c.r.nrM1 === 'mai',
-    text: 'Câte anume?',
-    scurt: 'Câte autoturisme',
-    optiuni: optiuniMulte(CONFIG.maxVehicule),
+    etapa: 'masini',
+    cand: (c) => c.r.tipMasini === 'mixt',
+    text: (c) => `Câte dintre cele ${numarMasini(c.r)} sunt microbuze?`,
+    explicatie: 'Restul sunt autoturisme.',
+    optiuni: (c) => cifre(1, numarMasini(c.r) - 1),
+    grila: true,
   },
-  {
-    id: 'nrM2',
-    tip: 'alegere',
-    text: 'Și câte [[microbuze|microbuz]]?',
-    scurt: 'Microbuze de înlocuit',
-    // în total cel puțin una și cel mult CONFIG.maxVehicule
-    optiuni: (c) => {
-      const n1 = numarMasini(c, 'nrM1');
-      return optiuniNumar(n1 === 0 ? 1 : 0, CONFIG.maxVehicule - n1, true);
-    },
-  },
-  {
-    id: 'nrM2Multe',
-    tip: 'alegere',
-    cand: (c) => c.r.nrM2 === 'mai',
-    text: 'Câte anume?',
-    scurt: 'Câte microbuze',
-    optiuni: (c) => optiuniMulte(CONFIG.maxVehicule - numarMasini(c, 'nrM1')),
-  },
+  // M4 · De cât timp sunt ale firmei
   {
     id: 'vechi',
     tip: 'alegere',
-    text: (c) => (c.masini.length === 1
-      ? 'Mașina pe care o înlocuiești e a firmei de cel puțin un an?'
-      : 'Mașinile pe care le înlocuiești sunt ale firmei de cel puțin un an?'),
-    scurt: 'Ale firmei de cel puțin un an',
+    etapa: 'masini',
+    ecou: (c) => {
+      if (c.r.tipMasini !== 'mixt') return null;
+      const n2 = c.masini.filter((m) => m.cat === 'M2').length;
+      return `Deci ${autoturismeText(c.masini.length - n2)} și ${microbuzeText(n2)}.`;
+    },
+    text: (c) => (c.masini.length === 1 ? 'Mașina e a firmei de cel puțin un an?' : 'Mașinile sunt ale firmei de cel puțin un an?'),
     optiuni: [
       { valoare: 'da', eticheta: 'Da' },
       { valoare: 'nu', eticheta: 'Nu' },
     ],
   },
-  {
-    id: 'promisiuneExplicatie',
-    tip: 'mesaj',
-    cand: (c) => c.r.vechi === 'nu',
-    text: 'Se poate și așa: cumperi o mașină pe benzină sau motorină cu [[promisiune notarială|promisiune]] (cu RCA și ITP valabile și anul trecut) și o treci pe firmă înainte de contractul de finanțare. Costul ei nu se decontează.',
-  },
+  // M5 · Promisiunea
   {
     id: 'promisiune',
     tip: 'alegere',
+    etapa: 'masini',
     cand: (c) => c.r.vechi === 'nu',
-    text: 'Poți face asta?',
-    scurt: 'Cu promisiune notarială',
+    text: 'Poți cumpăra una înainte de contract?',
+    explicatie: 'Se poate cu o [[promisiune notarială|promisiune]]: cumperi o mașină pe benzină sau motorină cu RCA și ITP valabile și anul trecut și o treci pe firmă înainte de contractul de finanțare. Costul ei nu se decontează.',
     optiuni: [
-      { valoare: 'da', eticheta: 'Pot face asta' },
+      { valoare: 'da', eticheta: 'Da, pot' },
       { valoare: 'nu', eticheta: 'Nu' },
     ],
   },
+  // X2 · fără mașină de înlocuit
   {
     id: 'oprireVechi',
     tip: 'oprire',
+    etapa: 'masini',
     cand: (c) => c.r.promisiune === 'nu',
     titlu: 'Fără o mașină de înlocuit nu se poate aplica.',
     motive: () => [],
     text: 'Fiecare mașină electrică nouă trebuie să înlocuiască o mașină pe benzină sau motorină a firmei. Hai să vorbim: poate găsim împreună o soluție.',
-    butoane: [SUNA, { valoare: 'inapoi', eticheta: 'Schimbă răspunsul', actiune: { tip: 'inapoi', pas: 'promisiune' } }],
+    butoane: [SUNA, { valoare: 'inapoi', eticheta: 'Schimbă răspunsul', actiune: { tip: 'inapoi', pas: 'vechi' } }],
   },
 
-  // 3 · Mașinile noi, pe rând
-  {
-    id: 'masiniNoi',
-    tip: 'mesaj',
-    text: (c) => {
-      const m1 = c.masini.some((m) => m.cat === 'M1');
-      const m2 = c.masini.some((m) => m.cat === 'M2');
-      const regula = m1 && m2
-        ? 'Autoturismul se înlocuiește tot cu un autoturism, iar microbuzul cu un microbuz.'
-        : m1 ? 'Autoturismul se înlocuiește tot cu un autoturism.' : 'Microbuzul se înlocuiește tot cu un microbuz.';
-      return `Acum, mașinile electrice noi. ${regula}`;
-    },
-  },
+  // P1, P2 · pentru fiecare mașină
   { tip: 'pentruFiecareMasina', id: 'masina', pasi: pasiMasina },
 
-  // 4 · Rezultatul
-  { id: 'rezultat', tip: 'rezultat' },
+  // R · Rezultatul
+  { id: 'rezultat', tip: 'rezultat', etapa: 'rezultat' },
 ];
+
+/** Progresul de sus. */
+export const PROGRES = {
+  etape: [
+    { cheie: 'firma', nume: 'Firma' },
+    { cheie: 'masini', nume: 'Mașinile' },
+    { cheie: 'pret', nume: 'Prețul' },
+    { cheie: 'rezultat', nume: 'Rezultatul' },
+  ] as const,
+  /** „80 de puncte · până la 25.000 €” */
+  puncte: (n: number) => (n === 1 ? 'punct' : n % 100 === 0 || n % 100 >= 20 ? 'de puncte' : 'puncte'),
+  panaLa: 'până la',
+  etapaTrecuta: (nume: string) => `Înapoi la etapa ${nume}`,
+};
 
 /** Textele rezultatului. */
 export const REZULTAT = {
@@ -385,16 +358,14 @@ export const REZULTAT = {
     return [
       'Poți aplica.',
       `Primești până la **${euro(r.ajutor)}**.`,
-      `Tu plătești [[TVA-ul|tva]], cam **${euro(r.tvaSuma)}**.`,
-      ...(peste > 0 ? [`Plus diferența peste plafon, **${euro(peste)}**.`] : []),
+      `Tu plătești [[TVA-ul|tva]], cam **${euro(r.tvaSuma)}**${peste > 0 ? `, și diferența peste [[plafon]], **${euro(peste)}**` : ''}.`,
     ];
   },
   bara: {
     titlu: 'Banii, pe scurt',
     finantare: 'Finanțarea',
-    partea: 'Partea ta peste plafon',
+    partea: 'Partea ta',
     tva: `TVA-ul (${Math.round(CONFIG.tva * 100)}%)`,
-    total: 'Prețul cu TVA',
   },
   /** Antrenorul la rezultat, dacă lipsesc puncte (null = nu lipsesc). */
   antrenor: (c: Context): string | null => {
@@ -405,28 +376,17 @@ export const REZULTAT = {
       ? `Cu un model asamblat în UE ai avea **${cu}**.`
       : `Cu modele asamblate în UE ai avea **${cu}**.`;
   },
+  antrenorEticheta: 'Antrenorul',
   aplica: 'Aplică',
-  aplicat: 'Am socotit toate mașinile asamblate în UE.',
-  sfaturi: 'Sfaturi',
   deStiut: 'De știut',
   nota: 'Estimare orientativă după regulile e-DRIVE Măsura 1. Eligibilitatea și punctajul final le stabilește Ministerul Transporturilor și Infrastructurii.',
   trimite: 'Trimite-ne analiza',
-  suna: 'Sună-ne',
-  trimisa: 'Am primit analiza ta. Te sunăm noi.',
-};
-
-/** Banda de scor (fixă sus). */
-export const BANDA = {
-  /** banda apare după ce s-a spus acest pas */
-  dupa: 'pornire',
-  scor: 'Punctajul',
-  din: '/100',
-  eticheta: (c: Context): string | null => {
-    const i = c.evaluare.incadrare;
-    return i.status === 'imm' ? `${i.marime.nume} · ${puncte(i.puncte)}` : null;
-  },
-  bonus: (c: Context): string | null => (c.rezultat.p2 > 0 ? `+${c.rezultat.p2} pentru mașini asamblate în UE` : null),
-  estimat: 'estimat',
+  trimisa: 'Analiza a fost trimisă ✓',
+  primita: 'Am primit analiza ta. Te sunăm noi.',
+  suna: `Sună-ne · ${CONTACT.telefon}`,
+  schimba: '← Schimbă răspunsurile',
+  /** unde duce „Schimbă răspunsurile” */
+  schimbaPas: 'nrMasini',
 };
 
 /** Drumul până la bani. */
@@ -447,27 +407,22 @@ export const DRUM = {
 /** Foaia „Trimite-ne analiza”. */
 export const TRIMITERE = {
   titlu: 'Trimite-ne analiza',
-  intro: 'Lasă-ne numele și telefonul. Restul pleacă automat, iar noi te sunăm.',
-  nume: 'Numele tău',
+  intro: 'Ce primim: firma, răspunsurile tale și rezultatul. Te sunăm noi, fără obligații.',
+  nume: 'Numele',
   telefon: 'Telefonul',
   email: 'Emailul (opțional)',
-  rezumat: 'Ce ne trimiți',
-  buton: 'Trimite analiza',
+  buton: 'Trimite',
   seTrimite: 'Se trimite…',
-  inchide: 'Închide',
   eroareNume: 'Scrie-ți numele, ca să știm cu cine vorbim.',
   eroareTelefon: 'Scrie un număr de telefon, de exemplu 0722 123 456.',
   eroareEmail: 'Emailul nu pare corect.',
-  succes: 'Am primit analiza ta. Te sunăm noi.',
 };
 
 /** Textele mărunte ale interfeței. */
 export const TEXTE = {
-  scrie: 'Calculatorul scrie',
-  schimba: 'Schimbă răspunsul',
-  reia: 'Reia de la început',
-  altaSumaEroare: 'Scrie suma în euro, fără TVA.',
+  inapoi: '← Înapoi',
+  maiPutine: '← 1–4',
+  inapoiLaSume: '← înapoi la sumele rotunde',
   glosarInchide: 'Am înțeles',
-  monograma: 'DD',
-  vorbitor: 'Dezvoltare digitală',
+  ales: 'ales',
 };

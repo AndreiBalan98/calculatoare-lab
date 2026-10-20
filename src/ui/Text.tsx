@@ -33,16 +33,24 @@ export function Text({ text, className }: { text: string; className?: string }) 
       {bucati(text).map((b, i) => {
         if (b.tip === 'gros') return <strong key={i} className="font-semibold text-primary">{b.text}</strong>;
         if (b.tip === 'termen' && GLOSAR[b.cheie]) {
+          // span cu rol de buton: se rupe pe rânduri ca textul din jur (un <button> nu poate)
           return (
-            <button
+            <span
               key={i}
-              type="button"
-              className="termen inline p-0 text-left align-baseline [font:inherit]"
+              role="button"
+              tabIndex={0}
+              className="termen"
               aria-haspopup="dialog"
               onClick={() => deschide(b.cheie)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  deschide(b.cheie);
+                }
+              }}
             >
               {b.text}
-            </button>
+            </span>
           );
         }
         return <span key={i}>{b.text}</span>;
