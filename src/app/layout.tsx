@@ -14,13 +14,16 @@ const sans = IBM_Plex_Sans({
 });
 
 export const metadata: Metadata = {
-  title: 'Laboratorul de calculatoare · Dezvoltare Digitală',
+  title: 'Laboratorul de calculatoare · Dezvoltare digitală',
   description: 'Calculatoarele de fonduri nerambursabile ale dezvoltaredigitala.ro, în formă conversațională.',
   robots: { index: false, follow: false },
 };
 
 export const viewport: Viewport = {
   themeColor: '#14213D',
+  width: 'device-width',
+  initialScale: 1,
+  viewportFit: 'cover',
 };
 
 export default function RootLayout({ children }: LayoutProps<'/'>) {

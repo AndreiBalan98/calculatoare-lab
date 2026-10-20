@@ -2,6 +2,9 @@
 
 import { FIRME_DEMO } from '@/motor/edrive/fixtures';
 import type { EroareAnaf, RaspunsAnaf } from '@/motor/edrive/anaf';
+import { curataCui } from '@/motor/edrive/cui';
+
+export { curataCui };
 
 export const ANAF_API_URL_IMPLICIT = 'https://dezvoltaredigitala.ro/wp-json/dd/v1/firma';
 const TIMEOUT_MS = 25_000;
@@ -10,12 +13,6 @@ const INTARZIERE_DEMO_MS = 600;
 export interface RaspunsRuta {
   status: number;
   corp: RaspunsAnaf;
-}
-
-/** Scoate „RO” din față și spațiile; întoarce null dacă rămâne altceva decât cifre. */
-export function curataCui(brut: string | null): string | null {
-  const s = String(brut ?? '').replace(/\s/g, '').replace(/^RO/i, '');
-  return /^\d{1,10}$/.test(s) ? s : null;
 }
 
 const eroare = (status: number, cod: string, mesaj: string): RaspunsRuta => ({

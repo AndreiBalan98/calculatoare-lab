@@ -20,10 +20,10 @@ npm test             # Vitest: motorul e-DRIVE, inclusiv testarea diferențială
 npm run lint
 npm run build
 npm run test:e2e     # Playwright (Chromium), pe telefon 390×844 și desktop 1280×800
-CAPTURI=1 npm run test:e2e   # salvează și capturile în docs/capturi/T01/
+CAPTURI=1 npm run test:e2e   # salvează și capturile (și video-ul pe telefon) în docs/capturi/T02/
 ```
 
-`test:e2e` face singur build-ul și pornește serverul pe portul 3100, în modul simulat (`ANAF_MOCK=1`).
+`test:e2e` face singur build-ul și pornește serverul pe portul 3100, în modul simulat (`ANAF_MOCK=1`), pe telefon (390×844 și 360×740) și desktop (1280×800).
 
 ## Structura
 
@@ -31,11 +31,16 @@ CAPTURI=1 npm run test:e2e   # salvează și capturile în docs/capturi/T01/
 src/
   motor/edrive/   regulile e-DRIVE în TypeScript pur (config, calc, anaf, incadrare) + testele
     fixtures/     firmele demo (răspunsuri ANAF simulate)
-  scenariu/       conversația ca date (din T02)
-  ui/             componentele conversației (din T02)
+  scenariu/       conversația ca date: edrive.ts (pașii și toate textele), glosar.ts,
+                  context.ts (răspunsuri → datele motorului), derulare.ts (răspunsuri → firul conversației)
+  ui/             rama site-ului și componentele conversației (Framer Motion)
   app/            paginile și ruta GET /api/firma
 e2e/              testele Playwright
 ```
+
+## Cum schimbi conversația
+
+Totul e în [`src/scenariu/edrive.ts`](src/scenariu/edrive.ts) (instrucțiunile sunt în capul fișierului): textele, ordinea pașilor, butoanele, condițiile. `**îngroșat**`, `[[cuvânt|cheie]]` = cuvânt subliniat cu explicație din [`glosar.ts`](src/scenariu/glosar.ts). Cifrele vin mereu din motor.
 
 ## Ruta `GET /api/firma?cui=`
 
