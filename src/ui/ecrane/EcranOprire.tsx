@@ -3,16 +3,14 @@
 // X1, X2 · Opririle: ecran calm, fără roșu agresiv, cu motivul din motor și o cale spre noi.
 
 import { motion } from 'framer-motion';
-import type { Ecran } from '@/scenariu/derulare';
-import { CONTACT } from '@/scenariu/edrive';
+import { CONTACT } from '@/scenariu/comun';
+import type { EcranOprireT } from '@/scenariu/derulare';
 import type { Optiune } from '@/scenariu/tipuri';
 import { Text } from '../Text';
 import { MOMENT, atinge, useMiscare } from '../miscare';
 import { Coloana, Inapoi } from './parti';
 
-type EcranX = Extract<Ecran, { tip: 'oprire' }>;
-
-export function EcranOprire({ ecran, laActiune, laInapoi }: { ecran: EcranX; laActiune: (o: Optiune) => void; laInapoi?: () => void }) {
+export function EcranOprire<C>({ ecran, laActiune, laInapoi }: { ecran: EcranOprireT<C>; laActiune: (o: Optiune) => void; laInapoi?: () => void }) {
   const { intra, apasare } = useMiscare();
   return (
     <Coloana className="pb-6 pt-8 sm:pt-14">

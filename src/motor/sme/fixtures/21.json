@@ -1,0 +1,61 @@
+{
+  "ok": true,
+  "cui": "21",
+  "denumire": "DEMO VERDE MICRO SRL",
+  "adresa": "MUN. BOTOȘANI, STR. EXEMPLULUI NR. 21",
+  "forma_juridica": "SOCIETATE COMERCIALĂ CU RĂSPUNDERE LIMITATĂ",
+  "forma_organizare": "PERSOANA JURIDICA",
+  "caen": "2562",
+  "stare": "INREGISTRAT din data 14.04.2015",
+  "inactiv": false,
+  "radiat": false,
+  "data_inregistrare": "2015-04-14",
+  "judet": "BOTOȘANI",
+  "judet_cod": "BT",
+  "bilant": {
+    "an": 2025,
+    "angajati": 6,
+    "cifra_afaceri": 1350000,
+    "active": 980000,
+    "datorii": 310000,
+    "capitaluri": 420000,
+    "capital_social": 200,
+    "profit_brut": 140000,
+    "profit_net": 117600
+  },
+  "bilanturi": [
+    {
+      "an": 2025,
+      "angajati": 6,
+      "cifra_afaceri": 1350000,
+      "active": 980000,
+      "datorii": 310000,
+      "capitaluri": 420000,
+      "capital_social": 200,
+      "profit_brut": 140000,
+      "profit_net": 117600
+    },
+    {
+      "an": 2024,
+      "angajati": 6,
+      "cifra_afaceri": 1200000,
+      "active": 900000,
+      "datorii": 290000,
+      "capitaluri": 360000,
+      "capital_social": 200,
+      "profit_brut": 120000,
+      "profit_net": 100800
+    },
+    {
+      "an": 2023,
+      "angajati": 5,
+      "cifra_afaceri": 1050000,
+      "active": 820000,
+      "datorii": 300000,
+      "capitaluri": 300000,
+      "capital_social": 200,
+      "profit_brut": 95000,
+      "profit_net": 79800
+    }
+  ]
+}

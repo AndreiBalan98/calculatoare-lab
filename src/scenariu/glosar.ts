@@ -1,16 +1,14 @@
-// Cuvintele grele: în texte se scriu [[cuvânt]] sau [[cuvânt afișat|cheie]], iar la atingere
+// Cuvintele grele (e-DRIVE): în texte se scriu [[cuvânt]] sau [[cuvânt afișat|cheie]], iar la atingere
 // apare explicația de aici. Explicațiile folosesc doar regulile din motor (CONFIG) și din specificație.
 
 import { CONFIG } from '@/motor/edrive/config';
 import { euro } from './format';
+import type { Termen } from './program';
 
 const [micro, mica, mijlocie] = CONFIG.marimi;
 const mil = (n: number) => `${(n / 1_000_000).toLocaleString('ro-RO')} mil. €`;
 
-export interface Termen {
-  titlu: string;
-  text: string;
-}
+export type { Termen };
 
 export const GLOSAR: Record<string, Termen> = {
   imm: {

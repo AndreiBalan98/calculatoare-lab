@@ -3,12 +3,13 @@ import { expect, type Page, type TestInfo } from '@playwright/test';
 export const telefon = (info: TestInfo) => info.project.name.startsWith('telefon');
 
 /**
- * Cu CAPTURI=1, salvează captura ecranului în docs/capturi/T03/: pe telefon (390×844) mereu,
+ * Cu CAPTURI=1, salvează captura ecranului în docs/capturi/$CAPTURI_DIR/: pe telefon (390×844) mereu,
  * pe desktop doar pentru ecranele cerute (`desktop: true`).
  */
 export async function captura(page: Page, info: TestInfo, nume: string, o: { desktop?: boolean; intreaga?: boolean; imediat?: boolean } = {}) {
   if (process.env.CAPTURI !== '1') return;
   if (info.project.name !== 'telefon' && !(o.desktop && info.project.name === 'desktop')) return;
+  if (telefon(info)) await page.mouse.move(0, 0); // fără „hover” rămas de la atingerea de dinainte
   if (!o.imediat) await page.waitForTimeout(800); // să se termine mișcarea
   await page.screenshot({ path: `docs/capturi/${process.env.CAPTURI_DIR ?? 'T04'}/${nume}-${info.project.name}.png`, fullPage: !!o.intreaga });
 }
@@ -62,8 +63,8 @@ export async function alege(page: Page, info: TestInfo, cheie: string, optiune: 
   }
 }
 
-export async function cauta(page: Page, cui: string) {
-  await page.goto('/e-drive');
+export async function cauta(page: Page, cui: string, cale = '/e-drive') {
+  await page.goto(cale);
   const camp = page.getByLabel('CUI-ul firmei');
   await expect(camp).toBeVisible();
   await camp.fill(cui);

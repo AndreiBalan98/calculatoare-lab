@@ -1,34 +1,38 @@
 'use client';
 
-// Progresul, fix sus și mereu vizibil (docs/flux-edrive.md §2.1): 4 etape, linia care se umple
-// pe un resort la fiecare răspuns, inelul care respiră pe etapa curentă, rândul cu rezultatul
-// pe parcurs („80 de puncte · până la 25.000 €”) și „+20” auriu la câștig. ≤ 64px pe telefon.
+// Progresul, fix sus și mereu vizibil (docs/flux-edrive.md §2.1): etapele programului, linia care
+// se umple pe un resort la fiecare răspuns, inelul care respiră pe etapa curentă, rândul cu
+// rezultatul pe parcurs (din program: „80 de puncte · până la 25.000 €”, „Grant: 120.000 lei”),
+// cifrele care numără și „+20” auriu la câștig (doar unde programul îl cere). ≤ 64px pe telefon.
 
 import { AnimatePresence, motion } from 'framer-motion';
 import { useEffect, useRef, useState } from 'react';
-import { PROGRES } from '@/scenariu/edrive';
-import { euro } from '@/scenariu/format';
+import { TEXTE } from '@/scenariu/comun';
+import type { BucataRand } from '@/scenariu/program';
 import type { Etapa } from '@/scenariu/tipuri';
 import { NumarAnimat } from '../NumarAnimat';
 import { Bifa } from './Raspunsuri';
 import { useMiscare } from '../miscare';
 
 export interface DateProgres {
+  etape: readonly { cheie: Etapa; nume: string }[];
   /** 0…1 */
   umplere: number;
   curenta: Etapa;
   /** toate etapele bifate (pe rezultat) */
   gata: boolean;
-  /** null = nu arătăm încă rezultatul pe parcurs */
-  scor: number | null;
-  bani: number;
+  /** rândul cu rezultatul pe parcurs; null = nu îl arătăm încă */
+  rand: BucataRand[] | null;
   /** etapele trecute pe care se poate sări */
   laEtapa?: (e: Etapa) => void;
 }
 
-export function Progres({ umplere, curenta, gata, scor, bani, laEtapa }: DateProgres) {
+export function Progres({ etape, umplere, curenta, gata, rand, laEtapa }: DateProgres) {
   const { redus } = useMiscare();
-  const idx = PROGRES.etape.findIndex((e) => e.cheie === curenta);
+  const idx = etape.findIndex((e) => e.cheie === curenta);
+  // cifra la care apare „+N” când crește
+  const bucataScor = rand?.find((b) => typeof b !== 'string' && b.castig);
+  const scor = bucataScor && typeof bucataScor !== 'string' ? bucataScor.numar : null;
   const inainte = useRef(scor);
   const [castig, setCastig] = useState<{ id: number; valoare: number } | null>(null);
 
@@ -73,7 +77,7 @@ export function Progres({ umplere, curenta, gata, scor, bani, laEtapa }: DatePro
                 transition={redus ? { duration: 0 } : { type: 'spring', stiffness: 140, damping: 24 }}
               />
             </div>
-            {PROGRES.etape.map((e, i) => {
+            {etape.map((e, i) => {
               const trecuta = gata || i < idx;
               const curent = !gata && i === idx;
               const continut = (
@@ -101,7 +105,7 @@ export function Progres({ umplere, curenta, gata, scor, bani, laEtapa }: DatePro
                   key={e.cheie}
                   type="button"
                   onClick={() => laEtapa(e.cheie)}
-                  aria-label={PROGRES.etapaTrecuta(e.nume)}
+                  aria-label={TEXTE.etapaTrecuta(e.nume)}
                   className="relative z-10 flex flex-col items-center"
                 >
                   {continut}
@@ -115,13 +119,10 @@ export function Progres({ umplere, curenta, gata, scor, bani, laEtapa }: DatePro
           </div>
           <div className="flex h-[18px] items-center justify-center text-[13px] leading-[18px] sm:mt-0.5 sm:h-6 sm:text-[15px]" aria-live="polite">
             <AnimatePresence>
-              {scor !== null && (
+              {rand !== null && (
                 <motion.p key="rand" initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="relative text-primary" data-rand-rezultat>
-                  <NumarAnimat valoare={scor} className="font-semibold" /> {PROGRES.puncte(scor)}
-                  {bani > 0 && (
-                    <>
-                      {' · '}{PROGRES.panaLa} <NumarAnimat valoare={bani} format={euro} className="font-semibold" />
-                    </>
+                  {rand.map((b, i) =>
+                    typeof b === 'string' ? b : <NumarAnimat key={`${i}${b.cheie ?? ''}`} valoare={b.numar} format={b.format} className="font-semibold" />,
                   )}
                   <AnimatePresence>
                     {castig && (

@@ -3,15 +3,14 @@
 // T · „Trimite-ne analiza”: numele, telefonul, emailul (opțional). Trimiterea e simulată.
 
 import { useState, type FormEvent } from 'react';
-import { construiesteAnaliza, type Analiza } from '@/scenariu/analiza';
-import type { Derulare } from '@/scenariu/derulare';
-import { TRIMITERE } from '@/scenariu/edrive';
+import { TRIMITERE } from '@/scenariu/comun';
+import type { Contact } from '@/scenariu/program';
 import { Foaie } from '../Foaie';
 import { trimiteAnaliza } from '../trimitere';
 
 export function FoaieTrimitere({
-  deschisa, laInchidere, derulare, laTrimisa,
-}: { deschisa: boolean; laInchidere: () => void; derulare: Derulare; laTrimisa: (a: Analiza) => void }) {
+  deschisa, laInchidere, analiza: construiesteAnaliza, laTrimisa,
+}: { deschisa: boolean; laInchidere: () => void; analiza: (c: Contact) => unknown; laTrimisa: (a: unknown) => void }) {
   const [nume, setNume] = useState('');
   const [telefon, setTelefon] = useState('');
   const [email, setEmail] = useState('');
@@ -27,7 +26,7 @@ export function FoaieTrimitere({
     setErori(err);
     if (Object.keys(err).length) return;
     setSeTrimite(true);
-    const analiza = construiesteAnaliza({ derulare, contact: { nume, telefon, email } });
+    const analiza = construiesteAnaliza({ nume, telefon, email });
     await trimiteAnaliza(analiza);
     setSeTrimite(false);
     laTrimisa(analiza);

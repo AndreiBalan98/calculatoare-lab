@@ -8,9 +8,9 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import { useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import { parseNum, verifica } from '@/motor/edrive/calc';
-import { TEXTE } from '@/scenariu/edrive';
+import { TEXTE } from '@/scenariu/comun';
 import { euro } from '@/scenariu/format';
-import type { Optiune } from '@/scenariu/tipuri';
+import type { AltaSuma, Optiune } from '@/scenariu/tipuri';
 import { AVANS_MS, MOMENT, RAPID, atinge, useMiscare } from '../miscare';
 
 export function Bifa({ className = 'size-5' }: { className?: string }) {
@@ -29,10 +29,15 @@ function Sageata() {
   );
 }
 
+export /** Comutatorul nebifat: un cerc gol (nu duce nicăieri, deci fără săgeată). */
+function Cerc() {
+  return <span aria-hidden className="size-5 shrink-0 rounded-full border-[1.5px] border-quinary transition-colors group-hover:border-primary" />;
+}
+
 type Stare = 'normal' | 'ales' | 'preselectat' | 'estompat';
 
-function Buton({
-  stare, patrat, onClick, children, detaliu, focus, index, className = '', eticheta,
+export function Buton({
+  stare, patrat, onClick, children, detaliu, focus, index, className = '', eticheta, comutator,
 }: {
   stare: Stare;
   patrat?: boolean;
@@ -43,8 +48,11 @@ function Buton({
   index: number;
   className?: string;
   eticheta?: string;
+  /** buton-comutator (alegerea multiplă): aria-pressed mereu, intră în cascadă și când e ales */
+  comutator?: boolean;
 }) {
   const { redus, apasare } = useMiscare();
+  const inCascada = comutator || stare === 'normal' || stare === 'preselectat';
   const stil = {
     normal: 'border-quaternary bg-white text-primary hover:border-primary',
     ales: 'border-primary bg-primary text-white',
@@ -55,32 +63,27 @@ function Buton({
     <motion.button
       type="button"
       initial={redus ? { opacity: 0 } : { opacity: 0, y: 8 }}
-      animate={{ opacity: stare === 'estompat' ? 0.4 : 1, y: 0, transition: { ...RAPID, duration: 0.2, delay: stare === 'normal' || stare === 'preselectat' ? MOMENT.optiuni + index * MOMENT.cascada : 0 } }}
+      animate={{ opacity: stare === 'estompat' ? 0.4 : 1, y: 0, transition: { ...RAPID, duration: 0.2, delay: inCascada ? MOMENT.optiuni + index * MOMENT.cascada : 0 } }}
       exit={{ opacity: 0, scale: redus ? 1 : 0.96, transition: RAPID }}
       whileTap={apasare}
       onClick={onClick}
       data-focus={focus || undefined}
-      aria-pressed={stare === 'preselectat' || stare === 'ales' ? true : undefined}
+      aria-pressed={comutator ? stare === 'ales' : stare === 'preselectat' || stare === 'ales' ? true : undefined}
       aria-label={eticheta}
       className={`group flex w-full items-center gap-3 rounded-buton border text-left font-semibold leading-tight transition-[background-color,border-color,color] duration-150 ${stil} ${
-        patrat ? 'h-14 justify-center text-[20px]' : 'min-h-[52px] justify-between px-4 py-2.5 text-[17px]'
+        patrat ? 'h-14 justify-center text-[20px]' : `min-h-[52px] justify-between px-4 ${comutator ? 'py-2' : 'py-2.5'} text-[17px]`
       } ${className}`}
     >
       <span className={patrat ? '' : 'min-w-0'}>
         {children}
         {detaliu && <span className={`block text-[13px] font-normal ${stare === 'ales' ? 'text-quinary' : 'text-senary'}`}>{detaliu}</span>}
       </span>
-      {!patrat && (stare === 'ales' || stare === 'preselectat' ? <Bifa /> : <Sageata />)}
+      {!patrat && (stare === 'ales' || stare === 'preselectat' ? <Bifa /> : comutator ? <Cerc /> : <Sageata />)}
     </motion.button>
   );
 }
 
-export interface SumaConfig {
-  eticheta: string;
-  placeholder: string;
-  buton: string;
-  eroare: string;
-}
+export type SumaConfig = AltaSuma;
 
 export function Raspunsuri({
   optiuni, raspuns, grila, sume, maiMulte, altaSuma, laAlegere, laSuma,
@@ -157,7 +160,7 @@ export function Raspunsuri({
                 onClick={() => !ales && setAlta(true)}
               >
                 {altaSuma.eticheta}
-                {exact && <span className="block text-[13px] font-normal text-senary">{euro(Number(exact))}</span>}
+                {exact && <span className="block text-[13px] font-normal text-senary">{(altaSuma.format ?? euro)(Number(exact))}</span>}
               </Buton>
             )}
           </motion.div>
@@ -224,9 +227,9 @@ function FormularSuma({
               setText(e.target.value);
               setEroare(null);
             }}
-            className="camp h-[52px] pr-10 text-[19px]"
+            className={`camp h-[52px] ${(config.unitate ?? '€').length > 1 ? 'pr-12' : 'pr-10'} text-[19px]`}
           />
-          <span className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-senary">€</span>
+          <span className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-senary">{config.unitate ?? '€'}</span>
         </div>
         <motion.button type="submit" whileTap={apasare} className={`btn-plin h-[52px] shrink-0 ${trimis ? 'bg-secondary' : ''}`}>
           {trimis ? <Bifa /> : config.buton}

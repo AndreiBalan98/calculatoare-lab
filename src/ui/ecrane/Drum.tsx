@@ -4,17 +4,18 @@
 // pașii apar în cascadă.
 
 import { AnimatePresence, motion } from 'framer-motion';
-import { DRUM } from '@/scenariu/edrive';
+import type { DateDrum } from '@/scenariu/program';
+import { Text } from '../Text';
 import { RESORT, useMiscare } from '../miscare';
 import { Bifa } from './Raspunsuri';
 
-export function Drum({ facuti, intarziere = 0 }: { facuti: number; intarziere?: number }) {
+export function Drum({ drum, facuti, intarziere = 0 }: { drum: DateDrum; facuti: number; intarziere?: number }) {
   const { intra, redus } = useMiscare();
   return (
     <section className="card p-4 sm:p-6" aria-labelledby="drum-titlu" data-testid="drum">
-      <h3 id="drum-titlu" className="text-mediu">{DRUM.titlu}</h3>
+      <h3 id="drum-titlu" className="text-mediu">{drum.titlu}</h3>
       <ol className="mt-4">
-        {DRUM.pasi.map((p, i) => {
+        {drum.pasi.map((p, i) => {
           const facut = i < facuti;
           const urmator = i === facuti;
           return (
@@ -25,7 +26,7 @@ export function Drum({ facuti, intarziere = 0 }: { facuti: number; intarziere?: 
               data-stare={facut ? 'facut' : urmator ? 'urmator' : 'viitor'}
               aria-current={urmator ? 'step' : undefined}
             >
-              {i < DRUM.pasi.length - 1 && (
+              {i < drum.pasi.length - 1 && (
                 <span aria-hidden className={`absolute left-[13px] top-7 h-[calc(100%-24px)] w-0.5 ${facut ? 'bg-accent' : 'bg-quaternary'}`} />
               )}
               <span
@@ -47,9 +48,9 @@ export function Drum({ facuti, intarziere = 0 }: { facuti: number; intarziere?: 
               <div className="min-w-0 pt-0.5">
                 <p className={`font-semibold leading-snug ${facut || urmator ? 'text-primary' : ''}`}>
                   {p.titlu}
-                  {urmator && <span className="eticheta-mica ml-2 align-middle text-[11px]">{DRUM.urmatorul}</span>}
+                  {urmator && <span className="eticheta-mica ml-2 align-middle text-[11px]">{drum.urmatorul}</span>}
                 </p>
-                {p.text && <p className="text-[15px] leading-snug text-senary">{p.text}</p>}
+                {p.text && <p className="text-[15px] leading-snug text-senary"><Text text={p.text} /></p>}
               </div>
             </motion.li>
           );

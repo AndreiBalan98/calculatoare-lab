@@ -5,14 +5,12 @@
 
 import { motion } from 'framer-motion';
 import { useState } from 'react';
-import { curataCui } from '@/motor/edrive/cui';
-import type { Ecran } from '@/scenariu/derulare';
+import { curataCui } from '@/motor/cui';
+import type { EcranCuiT } from '@/scenariu/derulare';
 import { MOMENT, atinge, useMiscare } from '../miscare';
 import { Coloana, Ecou, Intrebare } from './parti';
 
-type EcranC = Extract<Ecran, { tip: 'cui' }>;
-
-export function EcranCui({ ecran, initial, laRaspuns }: { ecran: EcranC; initial: string; laRaspuns: (v: string) => void }) {
+export function EcranCui<C>({ ecran, initial, laRaspuns }: { ecran: EcranCuiT<C>; initial: string; laRaspuns: (v: string) => void }) {
   const [text, setText] = useState(initial);
   const [eroare, setEroare] = useState<string | null>(null);
   const [modificat, setModificat] = useState(false);

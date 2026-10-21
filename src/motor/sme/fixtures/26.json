@@ -1,0 +1,54 @@
+{
+  "ok": true,
+  "cui": "26",
+  "denumire": "DEMO BILANȚ LIPSĂ SRL",
+  "adresa": "MUN. BOTOȘANI, STR. EXEMPLULUI NR. 26",
+  "forma_juridica": "SOCIETATE COMERCIALĂ CU RĂSPUNDERE LIMITATĂ",
+  "forma_organizare": "PERSOANA JURIDICA",
+  "caen": "3312",
+  "stare": "INREGISTRAT din data 18.02.2014",
+  "inactiv": false,
+  "radiat": false,
+  "data_inregistrare": "2014-02-18",
+  "judet": "BOTOȘANI",
+  "judet_cod": "BT",
+  "bilant": {
+    "an": 2025,
+    "angajati": 9,
+    "cifra_afaceri": 1600000,
+    "active": 1100000,
+    "datorii": 400000,
+    "capitaluri": 500000,
+    "capital_social": 200,
+    "profit_brut": 130000,
+    "profit_net": 109200
+  },
+  "bilanturi": [
+    {
+      "an": 2025,
+      "angajati": 9,
+      "cifra_afaceri": 1600000,
+      "active": 1100000,
+      "datorii": 400000,
+      "capitaluri": 500000,
+      "capital_social": 200,
+      "profit_brut": 130000,
+      "profit_net": 109200
+    },
+    {
+      "an": 2024,
+      "lipsa": true
+    },
+    {
+      "an": 2023,
+      "angajati": 8,
+      "cifra_afaceri": 1400000,
+      "active": 950000,
+      "datorii": 380000,
+      "capitaluri": 420000,
+      "capital_social": 200,
+      "profit_brut": 110000,
+      "profit_net": 92400
+    }
+  ]
+}

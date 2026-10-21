@@ -1,0 +1,61 @@
+{
+  "ok": true,
+  "cui": "25",
+  "denumire": "DEMO PODGORIA SRL",
+  "adresa": "COM. COTNARI, JUD. IAȘI",
+  "forma_juridica": "SOCIETATE COMERCIALĂ CU RĂSPUNDERE LIMITATĂ",
+  "forma_organizare": "PERSOANA JURIDICA",
+  "caen": "1102",
+  "stare": "INREGISTRAT din data 03.05.2011",
+  "inactiv": false,
+  "radiat": false,
+  "data_inregistrare": "2011-05-03",
+  "judet": "IAȘI",
+  "judet_cod": "IS",
+  "bilant": {
+    "an": 2025,
+    "angajati": 8,
+    "cifra_afaceri": 1900000,
+    "active": 2600000,
+    "datorii": 700000,
+    "capitaluri": 1500000,
+    "capital_social": 200,
+    "profit_brut": 210000,
+    "profit_net": 176400
+  },
+  "bilanturi": [
+    {
+      "an": 2025,
+      "angajati": 8,
+      "cifra_afaceri": 1900000,
+      "active": 2600000,
+      "datorii": 700000,
+      "capitaluri": 1500000,
+      "capital_social": 200,
+      "profit_brut": 210000,
+      "profit_net": 176400
+    },
+    {
+      "an": 2024,
+      "angajati": 8,
+      "cifra_afaceri": 1750000,
+      "active": 2400000,
+      "datorii": 650000,
+      "capitaluri": 1300000,
+      "capital_social": 200,
+      "profit_brut": 190000,
+      "profit_net": 159600
+    },
+    {
+      "an": 2023,
+      "angajati": 7,
+      "cifra_afaceri": 1600000,
+      "active": 2200000,
+      "datorii": 600000,
+      "capitaluri": 1100000,
+      "capital_social": 200,
+      "profit_brut": 170000,
+      "profit_net": 142800
+    }
+  ]
+}

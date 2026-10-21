@@ -1,18 +1,19 @@
 'use client';
 
-// Calculatorul e-DRIVE pe ecrane: un ecran = o întrebare (docs/flux-edrive.md v2).
-// Starea = răspunsurile + ecranul afișat. „Înapoi” (și Back-ul browserului) = ecranul de dinainte
-// din drum; înainte = automat după răspuns. Progresul de sus e mereu vizibil.
+// Calculatorul pe ecrane: un ecran = o întrebare (docs/flux-edrive.md v2), pentru orice program
+// (e-DRIVE, SME Eco-Tech…). Starea = răspunsurile + ecranul afișat. „Înapoi” (și Back-ul
+// browserului) = ecranul de dinainte din drum; înainte = automat după răspuns. Progresul de sus
+// e mereu vizibil. Ce e specific programului vine din obiectul `program`.
 
 import { AnimatePresence, motion } from 'framer-motion';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import type { RaspunsAnaf } from '@/motor/edrive/anaf';
-import { altCui, raspunde, toateUE } from '@/scenariu/actiuni';
-import type { CacheAnaf, Raspunsuri } from '@/scenariu/context';
-import { anteriorul, deruleaza, ecranul, progresEtape, urmatorul, type Derulare, type Ecran } from '@/scenariu/derulare';
-import { PROGRAM, REZULTAT, SCENARIU } from '@/scenariu/edrive';
-import type { Etapa, Optiune } from '@/scenariu/tipuri';
+import type { RaspunsAnaf } from '@/motor/anaf';
+import { altCui, raspunde } from '@/scenariu/actiuni';
+import { anteriorul, deruleaza, ecranul, umplere as umplereDin, urmatorul } from '@/scenariu/derulare';
+import type { Program } from '@/scenariu/program';
+import type { CacheAnaf, ContextBaza, Etapa, Optiune, Raspunsuri } from '@/scenariu/tipuri';
 import { Antet, BandaProgram, Subsol } from '../Rama';
+import { GlosarContext } from '../Text';
 import { useMiscare } from '../miscare';
 import { EcranCautare } from './EcranCautare';
 import { EcranCui } from './EcranCui';
@@ -25,15 +26,8 @@ import { Progres } from './Progres';
 
 const ANAF_INDISPONIBIL: RaspunsAnaf = { ok: false, cod: 'anaf_indisponibil', mesaj: 'ANAF nu răspunde.' };
 
-/** Cât din linia progresului e plină: fiecare etapă (firma, mașinile, prețul) are o treime. */
-function umplereDin(d: Derulare, e: Ecran): number {
-  if (e.tip === 'rezultat') return 1;
-  const p = progresEtape(d);
-  const parte = (k: Etapa) => (p[k].total ? p[k].raspunse / p[k].total : 0);
-  return (parte('firma') + parte('masini') + parte('pret')) / 3;
-}
-
-export function Calculator() {
+export function Calculator<C extends ContextBaza>({ program }: { program: Program<C> }) {
+  const scenariu = program.scenariu;
   const [r, setR] = useState<Raspunsuri>({});
   const [cache, setCache] = useState<CacheAnaf>({});
   const [curent, setCurent] = useState<string | null>(null);
@@ -45,7 +39,7 @@ export function Calculator() {
   const istoric = useRef(0);
   const prima = useRef(true);
 
-  const der = useMemo(() => deruleaza(SCENARIU, r, cache), [r, cache]);
+  const der = useMemo(() => deruleaza(scenariu, r, cache), [scenariu, r, cache]);
   const ecran = ecranul(der, curent);
 
   /** Merge la un ecran și lasă o urmă în istoria browserului (pentru Back). */
@@ -87,7 +81,7 @@ export function Calculator() {
     const cui = der.cauta;
     if (!cui) return;
     let activ = true;
-    fetch(`/api/firma?cui=${encodeURIComponent(cui)}`)
+    fetch(`/api/firma?cui=${encodeURIComponent(cui)}${program.istoric ? '&istoric=1' : ''}`)
       .then((res) => res.json() as Promise<RaspunsAnaf>)
       .catch(() => ANAF_INDISPONIBIL)
       .then((j) => {
@@ -96,24 +90,24 @@ export function Calculator() {
     return () => {
       activ = false;
     };
-  }, [der.cauta]);
+  }, [der.cauta, program.istoric]);
 
   const laRaspuns = useCallback((pas: string, valoare: string) => {
-    const nou = raspunde(SCENARIU, r, pas, valoare);
-    const d2 = deruleaza(SCENARIU, nou, cache);
+    const nou = raspunde(scenariu, r, pas, valoare);
+    const d2 = deruleaza(scenariu, nou, cache);
     const urm = urmatorul(d2, pas);
     setR(nou);
     // linia nu coboară vizibil: doar se încetinește când aflăm că sunt mai multe întrebări
     setUmplere((u) => Math.max(u, umplereDin(d2, urm)));
     mergi(urm.cheie, 1);
-  }, [r, cache, mergi]);
+  }, [scenariu, r, cache, mergi]);
 
   const laAltCui = useCallback(() => {
-    setR((x) => altCui(SCENARIU, x));
+    setR((x) => altCui(scenariu, x));
     setUmplere(0);
     setTrimisa(false);
     mergi('cui', -1);
-  }, [mergi]);
+  }, [scenariu, mergi]);
 
   const laActiune = useCallback((o: Optiune) => {
     const a = o.actiune;
@@ -140,7 +134,6 @@ export function Calculator() {
   }, []);
 
   const ctx = der.ctx;
-  const incadrat = ctx.evaluare.incadrare.status === 'imm' && (der.acceptate.firma === 'da' || ctx.estimat);
   const pePrimul = !anteriorul(der, ecran.cheie);
   const laInapoi = pePrimul ? undefined : inapoi;
 
@@ -159,18 +152,19 @@ export function Calculator() {
       case 'rezultat':
         return (
           <EcranRezultat
-            ctx={ctx}
+            vedere={program.rezultat(ctx)}
+            drum={program.drum}
             trimisa={trimisa}
             laTrimite={() => setFoaie(true)}
-            laAplicaUE={() => setR(toateUE)}
-            laSchimba={() => mergi(REZULTAT.schimbaPas, -1)}
+            laAplica={() => setR((x) => program.aplica(x, ctx))}
+            laSchimba={() => mergi(program.schimbaPas, -1)}
           />
         );
     }
   };
 
   return (
-    <>
+    <GlosarContext.Provider value={program.glosar}>
       <div className="flex min-h-dvh flex-col">
         <Antet />
         {/* banda programului doar pe S0, deasupra progresului; la plecare se strânge lin,
@@ -186,16 +180,16 @@ export function Calculator() {
               className="overflow-hidden"
               data-banda-program
             >
-              <BandaProgram program={PROGRAM} />
+              <BandaProgram program={program.banda} />
             </motion.div>
           )}
         </AnimatePresence>
         <Progres
+          etape={scenariu.etape}
           umplere={ecran.tip === 'rezultat' ? 1 : umplere}
           curenta={ecran.etapa}
           gata={ecran.tip === 'rezultat'}
-          scor={incadrat && ecran.tip !== 'oprire' ? (ecran.tip === 'rezultat' ? ctx.rezultat.total : ctx.scor) : null}
-          bani={ctx.rezultat.ajutor}
+          rand={program.rand(der, ecran)}
           laEtapa={laEtapa}
         />
         <main className="flex-1 overflow-x-clip">
@@ -220,12 +214,12 @@ export function Calculator() {
       <FoaieTrimitere
         deschisa={foaie}
         laInchidere={() => setFoaie(false)}
-        derulare={der}
+        analiza={(contact) => program.analiza(der, contact)}
         laTrimisa={() => {
           setFoaie(false);
           setTrimisa(true);
         }}
       />
-    </>
+    </GlosarContext.Provider>
   );
 }

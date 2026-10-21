@@ -5,12 +5,9 @@
 import { dinAnaf, type DateDinAnaf, type FirmaAnaf, type RaspunsAnaf } from '@/motor/edrive/anaf';
 import { calc, type CategorieVehicul, type DateEdrive, type FormaJuridica, type RezultatEdrive, type Vehicul } from '@/motor/edrive/calc';
 import { evalueazaFirma, incadrare, type EvaluareFirma, type Incadrare } from '@/motor/edrive/incadrare';
+import type { CacheAnaf, ContextBaza, Raspunsuri } from './tipuri';
 
-/** Răspunsurile date: id-ul pasului → valoarea aleasă. */
-export type Raspunsuri = Record<string, string>;
-
-/** Răspunsurile ANAF deja aduse, după CUI. */
-export type CacheAnaf = Record<string, RaspunsAnaf>;
+export type { CacheAnaf, Raspunsuri };
 
 export interface Masina {
   /** 0, 1, 2… în ordinea întrebărilor */
@@ -22,10 +19,7 @@ export interface Masina {
   total: number;
 }
 
-export interface Context {
-  r: Raspunsuri;
-  cui: string | null;
-  /** undefined = încă nu știm (se caută) */
+export interface Context extends ContextBaza {
   anaf: RaspunsAnaf | undefined;
   firma: FirmaAnaf | null;
   dinAnaf: DateDinAnaf | null;
