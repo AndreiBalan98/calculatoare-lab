@@ -19,6 +19,8 @@
   --color-avertisment: #8a5a00;
   --color-avertisment-fond: #fff6e0;
   --color-sfat-fond: #e9edf5;
+  /* insigna „Activ” (culoarea „ok” din calculatoarele de pe site, docs/flux-sme.md §7) */
+  --color-activ: #1e7b4f;
 
   --font-serif: var(--font-source-serif), Georgia, serif;
   --font-sans: var(--font-plex-sans), system-ui, sans-serif;

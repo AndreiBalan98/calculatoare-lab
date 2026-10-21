@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { dinAnaf } from '@/motor/edrive/anaf';
 import { evalueazaFirma } from '@/motor/edrive/incadrare';
 import { FIRME_DEMO } from '@/motor/edrive/fixtures';
+import { FIRME_DEMO_SME } from '@/motor/sme/fixtures';
 import { cautaFirma, curataCui } from './firma';
 
 afterEach(() => {
@@ -55,6 +56,20 @@ describe('cautaFirma()', () => {
     const r = await cautaFirma('RO12345678', { ANAF_API_URL: 'https://exemplu.test/firma' });
     expect(f.mock.calls[0][0]).toBe('https://exemplu.test/firma?cui=12345678');
     expect(r).toEqual({ status: 429, corp });
+  });
+
+  it('istoric=1 → trimis mai departe proxy-ului (?cui=…&istoric=1)', async () => {
+    const corp = { ok: false, cod: 'negasit', mesaj: 'Nu am găsit.' };
+    const f = vi.spyOn(globalThis, 'fetch').mockResolvedValue(Response.json(corp, { status: 404 }));
+    const r = await cautaFirma('12345678', { ANAF_API_URL: 'https://exemplu.test/firma' }, true);
+    expect(f.mock.calls[0][0]).toBe('https://exemplu.test/firma?cui=12345678&istoric=1');
+    expect(r).toEqual({ status: 404, corp });
+  });
+
+  it('CUI demo SME → fixture cu bilanțurile pe 3 ani', async () => {
+    vi.useFakeTimers();
+    const r = await rapid(cautaFirma('26', {}, true));
+    expect(r).toEqual({ status: 200, corp: FIRME_DEMO_SME['26'].raspuns });
   });
 
   it('eroare de rețea → anaf_indisponibil, 503', async () => {

@@ -2,7 +2,10 @@
 
 import Link from 'next/link';
 
-import { CONTACT } from '@/scenariu/edrive';
+import { CONTACT } from '@/scenariu/comun';
+import type { DateProgram } from '@/scenariu/program';
+
+export type { DateProgram };
 
 export function Antet() {
   return (
@@ -19,11 +22,10 @@ export function Antet() {
   );
 }
 
-export interface DateProgram {
-  categorie: string;
-  stare: string;
-  titlu: string;
-  rezumat: string;
+/** Insigna de stare: verde „Activ”, aurie „Anunțat”. */
+export function Insigna({ program, className }: { program: DateProgram; className: string }) {
+  const ton = program.stareTon === 'activ' ? 'bg-activ text-white' : 'bg-accent text-primary';
+  return <span className={`rounded-[4px] font-semibold uppercase tracking-[0.08em] ${ton} ${className}`}>{program.stare}</span>;
 }
 
 /** Ca `.dd-program-banda` de pe site. */
@@ -33,9 +35,7 @@ export function BandaProgram({ program }: { program: DateProgram }) {
       <div className="mx-auto max-w-[1120px] px-4 pb-5 pt-4 sm:pb-10 sm:pt-8">
         <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
           <span className="text-sm text-quinary">{program.categorie} ›</span>
-          <span className="rounded-[4px] bg-accent px-2 py-0.5 text-xs font-semibold uppercase tracking-[0.08em] text-primary">
-            {program.stare}
-          </span>
+          <Insigna program={program} className="px-2 py-0.5 text-xs" />
         </div>
         <h1 className="mt-2 max-w-[820px] text-[24px] text-white sm:mt-3 sm:text-[40px]">
           {/* cuvintele cu cratimă („e-DRIVE”) nu se rup pe două rânduri */}

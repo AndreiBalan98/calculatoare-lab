@@ -1,8 +1,7 @@
-// Trimiterea analizei. Deocamdată simulată (~800 ms); în T03 devine un apel la /api/analiza.
+// Trimiterea analizei (a oricărui calculator). Deocamdată simulată (~800 ms); trimiterea reală
+// (un apel la /api/analiza) e un task separat.
 
-import type { Analiza } from '@/scenariu/analiza';
-
-export async function trimiteAnaliza(analiza: Analiza): Promise<void> {
+export async function trimiteAnaliza(analiza: unknown): Promise<void> {
   void analiza;
   await new Promise((r) => setTimeout(r, 800));
 }

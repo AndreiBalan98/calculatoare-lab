@@ -1,14 +1,13 @@
-// Analiza care pleacă la contact@dezvoltaredigitala.ro (trimiterea reală vine în T03).
+// Analiza e-DRIVE care pleacă la contact@dezvoltaredigitala.ro (trimiterea reală: task separat).
+// `raspunsuriDin` e comun tuturor calculatoarelor.
 
-import type { Derulare } from './derulare';
+import type { Context } from './context';
+import type { Derulare, Ecran } from './derulare';
 import { localitate } from './format';
+import type { Contact } from './program';
 import { faraMarcaje } from './text';
 
-export interface Contact {
-  nume: string;
-  telefon: string;
-  email: string;
-}
+export type { Contact };
 
 export interface Analiza {
   program: 'e-DRIVE';
@@ -42,15 +41,14 @@ export interface Analiza {
 }
 
 export interface StareConversatie {
-  derulare: Derulare;
+  derulare: Derulare<Context>;
   contact: Contact;
   acum?: Date;
 }
 
-export function construiesteAnaliza({ derulare, contact, acum = new Date() }: StareConversatie): Analiza {
-  const { ctx, ecrane } = derulare;
-  const r = ctx.rezultat;
-  const raspunsuri: Analiza['raspunsuri'] = [];
+/** Întrebările din drum și răspunsurile date, ca text. */
+export function raspunsuriDin<C>(ecrane: Ecran<C>[]): { intrebare: string; raspuns: string }[] {
+  const raspunsuri: { intrebare: string; raspuns: string }[] = [];
   for (const e of ecrane) {
     if (e.tip === 'cui' && e.raspuns) raspunsuri.push({ intrebare: faraMarcaje(e.text), raspuns: e.raspuns });
     if (e.tip === 'cardFirma' && e.raspuns) {
@@ -62,6 +60,13 @@ export function construiesteAnaliza({ derulare, contact, acum = new Date() }: St
       raspunsuri.push({ intrebare, raspuns: e.raspunsText });
     }
   }
+  return raspunsuri;
+}
+
+export function construiesteAnaliza({ derulare, contact, acum = new Date() }: StareConversatie): Analiza {
+  const { ctx, ecrane } = derulare;
+  const r = ctx.rezultat;
+  const raspunsuri = raspunsuriDin(ecrane);
   return {
     program: 'e-DRIVE',
     creata: acum.toISOString(),

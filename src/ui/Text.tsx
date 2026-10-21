@@ -4,10 +4,14 @@
 // (docs/flux-edrive.md §6): balon la hover cu mouse-ul, la focus cu tastatura (Esc îl închide),
 // la tap pe ecranele tactile (închis la tap în altă parte).
 
-import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { GLOSAR } from '@/scenariu/glosar';
+import type { Termen as DateTermen } from '@/scenariu/program';
 import { bucati } from '@/scenariu/text';
+
+/** Glosarul calculatorului afișat (implicit cel e-DRIVE). */
+export const GlosarContext = createContext<Record<string, DateTermen>>(GLOSAR);
 
 const INTRARE_MS = 120;
 const IESIRE_MS = 150;
@@ -24,7 +28,7 @@ interface Pozitie {
 }
 
 function Termen({ cheie, text }: { cheie: string; text: string }) {
-  const termen = GLOSAR[cheie];
+  const termen = useContext(GlosarContext)[cheie];
   const id = useId();
   const [deschis, setDeschis] = useState(false);
   const [poz, setPoz] = useState<Pozitie | null>(null);
@@ -162,11 +166,12 @@ function Termen({ cheie, text }: { cheie: string; text: string }) {
 }
 
 export function Text({ text, className }: { text: string; className?: string }) {
+  const glosar = useContext(GlosarContext);
   return (
     <span className={className}>
       {bucati(text).map((b, i) => {
         if (b.tip === 'gros') return <strong key={i} className="font-semibold text-primary">{b.text}</strong>;
-        if (b.tip === 'termen' && GLOSAR[b.cheie]) return <Termen key={i} cheie={b.cheie} text={b.text} />;
+        if (b.tip === 'termen' && glosar[b.cheie]) return <Termen key={i} cheie={b.cheie} text={b.text} />;
         return <span key={i}>{b.text}</span>;
       })}
     </span>

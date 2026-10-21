@@ -11,20 +11,22 @@
 //   dat motorului), `eticheta` e textul de pe buton, `detaliu` un rând mic sub el.
 // - Când apare un pas: `cand`. Cifrele vin mereu din motor, prin `c` (contextul): c.evaluare,
 //   c.rezultat, c.scor (vezi context.ts). Nu scrie reguli de finanțare aici.
+// - Restul calculatorului (rândul din progres, rezultatul, drumul, glosarul): obiectul EDRIVE, la final.
 
 import { CONFIG } from '@/motor/edrive/config';
-import { numarMasini, pestePlafon, rezultatToateUE, scorInainteDeUE, type Context, type Masina } from './context';
-import { euro, puncte } from './format';
+import { toateUE } from './actiuni';
+import { construiesteAnaliza } from './analiza';
+import { CONTACT, TEXTE as TEXTE_COMUNE, TRIMITERE } from './comun';
+import { contextDin, numarMasini, pestePlafon, rezultatToateUE, scorInainteDeUE, type Context, type Masina } from './context';
+import { euro, localitate, puncte } from './format';
+import { GLOSAR } from './glosar';
+import type { DateProgram, Program, VedereRezultat } from './program';
 import type { Optiune, Pas, Scenariu } from './tipuri';
 
-export const CONTACT = {
-  telefon: '+40 749 589 848',
-  tel: 'tel:+40749589848',
-  email: 'contact@dezvoltaredigitala.ro',
-};
+export { CONTACT, TRIMITERE };
 
 /** Banda programului (doar pe primul ecran). */
-export const PROGRAM = {
+export const PROGRAM: DateProgram = {
   categorie: 'Fonduri nerambursabile',
   stare: 'Anunțat',
   titlu: 'Finanțare pentru mașini electrice: e-DRIVE pentru IMM-uri',
@@ -65,7 +67,7 @@ const etichetaMasina = (m: Masina) => {
   return m.total === 1 ? `Mașina electrică · ${cat}` : `Mașina electrică ${m.index + 1} din ${m.total} · ${cat}`;
 };
 
-function pasiMasina(m: Masina): Pas[] {
+function pasiMasina(m: Masina): Pas<Context>[] {
   const i = m.index;
   return [
     // P1 · prețul
@@ -134,7 +136,21 @@ const OPRIRE_FIRMA = {
   butoane: [SUNA, ALT_CUI],
 };
 
-export const SCENARIU: Scenariu = [
+/** Progresul de sus. */
+export const PROGRES = {
+  etape: [
+    { cheie: 'firma', nume: 'Firma' },
+    { cheie: 'masini', nume: 'Mașinile' },
+    { cheie: 'pret', nume: 'Prețul' },
+    { cheie: 'rezultat', nume: 'Rezultatul' },
+  ] as const,
+  /** „80 de puncte · până la 25.000 €” */
+  puncte: (n: number) => (n === 1 ? 'punct' : n % 100 === 0 || n % 100 >= 20 ? 'de puncte' : 'puncte'),
+  panaLa: 'până la',
+  etapaTrecuta: TEXTE_COMUNE.etapaTrecuta,
+};
+
+const PASI: Scenariu<Context>['pasi'] = [
   // S0 · Start + CUI (S1, căutarea, e starea de după)
   {
     id: 'cui',
@@ -161,13 +177,17 @@ export const SCENARIU: Scenariu = [
       { valoare: 'da', eticheta: 'Da, e firma mea' },
       { valoare: 'corectez', eticheta: 'Nu' },
     ],
-    etichete: {
-      localitatea: 'Localitatea',
-      categoria: 'Categoria',
-      angajatii: 'Angajați',
-      necunoscut: 'nu știm încă',
-      neImm: 'peste pragurile IMM',
+    randuri: (c) => {
+      const inc = c.incadrareAnaf;
+      const categoria = inc?.status === 'imm' ? inc.marime.nume : inc?.status === 'neimm' ? 'peste pragurile IMM' : 'nu știm încă';
+      const angajati = c.firma?.bilant?.angajati;
+      return [
+        { eticheta: 'Localitatea', valoare: localitate(c.firma?.adresa, c.firma?.judet) || '—' },
+        { eticheta: 'Categoria', valoare: categoria, accent: true },
+        ...(angajati != null ? [{ eticheta: 'Angajați', valoare: String(angajati) }] : []),
+      ];
     },
+    avert: (c) => c.evaluare.avert,
   },
   // S3 · Ce nu se potrivește
   {
@@ -327,24 +347,19 @@ export const SCENARIU: Scenariu = [
   },
 
   // P1, P2 · pentru fiecare mașină
-  { tip: 'pentruFiecareMasina', id: 'masina', pasi: pasiMasina },
+  { tip: 'grup', id: 'masina', pasi: (c) => c.masini.flatMap(pasiMasina) },
 
   // R · Rezultatul
   { id: 'rezultat', tip: 'rezultat', etapa: 'rezultat' },
 ];
 
-/** Progresul de sus. */
-export const PROGRES = {
-  etape: [
-    { cheie: 'firma', nume: 'Firma' },
-    { cheie: 'masini', nume: 'Mașinile' },
-    { cheie: 'pret', nume: 'Prețul' },
-    { cheie: 'rezultat', nume: 'Rezultatul' },
-  ] as const,
-  /** „80 de puncte · până la 25.000 €” */
-  puncte: (n: number) => (n === 1 ? 'punct' : n % 100 === 0 || n % 100 >= 20 ? 'de puncte' : 'puncte'),
-  panaLa: 'până la',
-  etapaTrecuta: (nume: string) => `Înapoi la etapa ${nume}`,
+export const SCENARIU: Scenariu<Context> = {
+  etape: PROGRES.etape,
+  context: contextDin,
+  pasi: PASI,
+  // Pentru ce n-am văzut încă: firma = CUI + confirmarea; mașinile = câte, ce fel, de cât timp;
+  // prețul = 2 întrebări pe mașină (1 mașină cât nu știm câte).
+  estimari: (c, acceptate) => ({ firma: 2, masini: 3, pret: 2 * Math.max(1, c.masini.length || numarMasini(acceptate)) }),
 };
 
 /** Textele rezultatului. */
@@ -376,14 +391,14 @@ export const REZULTAT = {
       ? `Cu un model asamblat în UE ai avea **${cu}**.`
       : `Cu modele asamblate în UE ai avea **${cu}**.`;
   },
-  antrenorEticheta: 'Antrenorul',
-  aplica: 'Aplică',
-  deStiut: 'De știut',
+  antrenorEticheta: TEXTE_COMUNE.antrenor,
+  aplica: TEXTE_COMUNE.aplica,
+  deStiut: TEXTE_COMUNE.deStiut,
   nota: 'Estimare orientativă după regulile e-DRIVE Măsura 1. Eligibilitatea și punctajul final le stabilește Ministerul Transporturilor și Infrastructurii.',
-  trimite: 'Trimite-ne analiza',
-  trimisa: 'Analiza a fost trimisă ✓',
-  primita: 'Am primit analiza ta. Te sunăm noi.',
-  suna: `Sună-ne · ${CONTACT.telefon}`,
+  trimite: TEXTE_COMUNE.trimite,
+  trimisa: TEXTE_COMUNE.trimisa,
+  primita: TEXTE_COMUNE.primita,
+  suna: TEXTE_COMUNE.suna,
   schimba: '← Schimbă răspunsurile',
   /** unde duce „Schimbă răspunsurile” */
   schimbaPas: 'nrMasini',
@@ -404,24 +419,64 @@ export const DRUM = {
   ],
 };
 
-/** Foaia „Trimite-ne analiza”. */
-export const TRIMITERE = {
-  titlu: 'Trimite-ne analiza',
-  intro: 'Ce primim: firma, răspunsurile tale și rezultatul. Te sunăm noi, fără obligații.',
-  nume: 'Numele',
-  telefon: 'Telefonul',
-  email: 'Emailul (opțional)',
-  buton: 'Trimite',
-  seTrimite: 'Se trimite…',
-  eroareNume: 'Scrie-ți numele, ca să știm cu cine vorbim.',
-  eroareTelefon: 'Scrie un număr de telefon, de exemplu 0722 123 456.',
-  eroareEmail: 'Emailul nu pare corect.',
-};
-
 /** Textele mărunte ale interfeței. */
-export const TEXTE = {
-  inapoi: '← Înapoi',
-  maiPutine: '← 1–4',
-  inapoiLaSume: '← înapoi la sumele rotunde',
-  ales: 'ales',
+export const TEXTE = TEXTE_COMUNE;
+
+/** Ecranul de rezultat, din motor. */
+function rezultat(c: Context): VedereRezultat {
+  const r = c.rezultat;
+  const peste = r.fara - r.ajutor;
+  const antrenor = REZULTAT.antrenor(c);
+  const sfatUE = r.tips.find((t) => t.apply === 'ue');
+  return {
+    varianta: 'ok',
+    eticheta: REZULTAT.eticheta,
+    cifra: r.total,
+    din: REZULTAT.din,
+    estimat: c.estimat ? REZULTAT.estimat : null,
+    titlu: null,
+    propozitii: REZULTAT.propozitii(c),
+    probleme: [],
+    bara: {
+      titlu: REZULTAT.bara.titlu,
+      segmente: [
+        { cheie: 'finantare', eticheta: REZULTAT.bara.finantare, valoare: r.ajutor, culoare: 'bg-primary' },
+        { cheie: 'partea', eticheta: REZULTAT.bara.partea, valoare: peste, culoare: 'bg-accent' },
+        { cheie: 'tva', eticheta: REZULTAT.bara.tva, valoare: r.tvaSuma, culoare: 'bg-quinary' },
+      ].filter((x) => x.valoare > 0),
+      total: r.fara + r.tvaSuma || 1,
+      format: euro,
+    },
+    rand: null,
+    antrenor: antrenor ? { text: antrenor, detaliu: sfatUE?.text ?? null, aplica: !!sfatUE } : null,
+    deStiut: r.avert.map((text) => ({ text, ton: 'avertisment' as const })),
+    drum: true,
+    trimite: true,
+    nota: REZULTAT.nota,
+    schimba: REZULTAT.schimba,
+  };
+}
+
+/** Calculatorul e-DRIVE: scenariul și ce e specific în jurul ecranelor comune. */
+export const EDRIVE: Program<Context> = {
+  scenariu: SCENARIU,
+  banda: PROGRAM,
+  rand: (d, e) => {
+    const c = d.ctx;
+    const incadrat = c.evaluare.incadrare.status === 'imm' && (d.acceptate.firma === 'da' || c.estimat);
+    if (!incadrat || e.tip === 'oprire') return null;
+    const scor = e.tip === 'rezultat' ? c.rezultat.total : c.scor;
+    const bani = c.rezultat.ajutor;
+    return [
+      { numar: scor, castig: true },
+      ` ${PROGRES.puncte(scor)}`,
+      ...(bani > 0 ? [` · ${PROGRES.panaLa} `, { numar: bani, format: euro }] : []),
+    ];
+  },
+  rezultat,
+  aplica: (r) => toateUE(r),
+  schimbaPas: REZULTAT.schimbaPas,
+  drum: DRUM,
+  glosar: GLOSAR,
+  analiza: (derulare, contact) => construiesteAnaliza({ derulare, contact }),
 };

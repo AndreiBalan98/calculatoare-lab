@@ -5,7 +5,7 @@
 
 import { motion } from 'framer-motion';
 import type { ReactNode } from 'react';
-import { TEXTE } from '@/scenariu/edrive';
+import { TEXTE } from '@/scenariu/comun';
 import { Text } from '../Text';
 import { MOMENT, useMiscare } from '../miscare';
 
