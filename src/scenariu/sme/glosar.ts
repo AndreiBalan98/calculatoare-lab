@@ -6,7 +6,8 @@ import { lei } from '../format';
 import type { Termen } from '../program';
 
 const [micro, mica, mijlocie] = CONFIG.marimi;
-const mil = (n: number) => `${(n / 1_000_000).toLocaleString('ro-RO')} mil. €`;
+// Programul e în lei (docs/flux-sme.md §1): pragurile IMM (în €) apar în lei, la cursul implicit al motorului.
+const mil = (n: number) => `circa ${(Math.round((n * CONFIG.curs[CONFIG.anCurs]) / 100_000) / 10).toLocaleString('ro-RO')} mil. lei`;
 const procent = (x: number) => `${Math.round(x * 100)}%`;
 
 export const GLOSAR_SME: Record<string, Termen> = {

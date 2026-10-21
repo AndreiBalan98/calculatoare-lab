@@ -1,5 +1,5 @@
 # T06 · Al doilea calculator: SME Eco-Tech, în același fel ca e-DRIVE
-Stare: de făcut
+Stare: PR #5
 Depinde de: T04 (pe `main`)
 
 ## Scopul
