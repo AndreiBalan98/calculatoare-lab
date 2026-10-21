@@ -27,7 +27,13 @@ export function EcranIntrebare<C>({
       <Intrebare eticheta={ecran.eticheta} text={ecran.text} explicatie={ecran.explicatie} />
       <motion.div {...intra(MOMENT.optiuni)} className="mt-5">
         {p.tip === 'multipla' ? (
-          <AlegereMultipla optiuni={ecran.optiuni} raspuns={ecran.raspuns} continua={p.continua} laRaspuns={(v) => laRaspuns(ecran.cheie, v)} />
+          <AlegereMultipla
+            optiuni={ecran.optiuni}
+            raspuns={ecran.raspuns}
+            continua={p.continua}
+            laRaspuns={(v) => laRaspuns(ecran.cheie, v)}
+            laInapoi={laInapoi}
+          />
         ) : (
           <Raspunsuri
             optiuni={ecran.optiuni}
@@ -43,7 +49,8 @@ export function EcranIntrebare<C>({
       </motion.div>
       <Antrenor text={ecran.antrenor} />
       <Nota text={ecran.nota} />
-      <Inapoi laInapoi={laInapoi} />
+      {/* la alegerea multiplă, „Înapoi” stă lângă „Continuă” */}
+      <Inapoi laInapoi={p.tip === 'multipla' ? undefined : laInapoi} />
     </Coloana>
   );
 }

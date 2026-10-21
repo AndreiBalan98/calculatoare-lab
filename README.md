@@ -1,6 +1,6 @@
 # calculatoare-lab
 
-Laboratorul pentru calculatoarele de fonduri nerambursabile ale [dezvoltaredigitala.ro](https://dezvoltaredigitala.ro), în formă conversațională. Primul: **e-DRIVE** (mașini electrice pentru IMM-uri). Cum lucrăm: [`CLAUDE.md`](CLAUDE.md) și [`tasks/README.md`](tasks/README.md).
+Laboratorul pentru calculatoarele de fonduri nerambursabile ale [dezvoltaredigitala.ro](https://dezvoltaredigitala.ro), în formă conversațională: **e-DRIVE** (`/e-drive`, mașini electrice pentru IMM-uri) și **SME Eco-Tech** (`/sme-eco-tech`, grant și credit pentru echipamente verzi). Cum lucrăm: [`CLAUDE.md`](CLAUDE.md) și [`tasks/README.md`](tasks/README.md).
 
 ## Rulezi local
 
@@ -16,11 +16,11 @@ Variabile de mediu (opționale): vezi [`.env.example`](.env.example).
 ## Testele
 
 ```bash
-npm test             # Vitest: motorul e-DRIVE, inclusiv testarea diferențială cu motorul de pe site
+npm test             # Vitest: motoarele (cu testarea diferențială față de motoarele de pe site) și scenariile
 npm run lint
 npm run build
 npm run test:e2e     # Playwright (Chromium), pe telefon 390×844 și desktop 1280×800
-CAPTURI=1 npm run test:e2e   # salvează și capturile în docs/capturi/T04/ (alt director: CAPTURI_DIR=T05)
+CAPTURI=1 CAPTURI_DIR=T06 npm run test:e2e -- e2e/sme.spec.ts   # salvează și capturile în docs/capturi/T06/
 ```
 
 `test:e2e` face singur build-ul și pornește serverul pe portul 3100, în modul simulat (`ANAF_MOCK=1`), pe telefon (390×844 și 360×740) și desktop (1280×800).
@@ -29,26 +29,40 @@ CAPTURI=1 npm run test:e2e   # salvează și capturile în docs/capturi/T04/ (al
 
 ```
 src/
-  motor/edrive/   regulile e-DRIVE în TypeScript pur (config, calc, anaf, incadrare) + testele
-    fixtures/     firmele demo (răspunsuri ANAF simulate)
-  scenariu/       calculatorul ca date: edrive.ts (ecranele și toate textele), glosar.ts,
-                  context.ts (răspunsuri → datele motorului), derulare.ts (răspunsuri → drumul de ecrane)
-  ui/             rama site-ului; ui/ecrane: un ecran = o întrebare, progresul de sus (Framer Motion)
-  app/            paginile și ruta GET /api/firma
+  motor/          regulile în TypeScript pur, câte un director pe program, + testele
+    edrive/       e-DRIVE (config, calc, anaf, incadrare); fixtures/ = firmele demo 1–12
+    sme/          SME Eco-Tech (config, calc, anaf, firma); fixtures/ = firmele demo 21–28
+    anaf.ts       răspunsul API-ului firmei (comun)
+  scenariu/       calculatoarele ca date
+    edrive.ts     e-DRIVE: ecranele, toate textele și obiectul „program” (context.ts, glosar.ts, analiza.ts)
+    sme.ts        SME Eco-Tech, la fel (sme/context.ts, sme/glosar.ts, sme/analiza.ts)
+    tipuri.ts, derulare.ts, program.ts …   comune: formatul pașilor, răspunsuri → drumul de ecrane
+  ui/             rama site-ului; ui/ecrane: un ecran = o întrebare, progresul de sus (Framer Motion),
+                  comune tuturor calculatoarelor; ui/programe: câte un fișier pe calculator
+  app/            paginile (/, /e-drive, /sme-eco-tech) și ruta GET /api/firma
 e2e/              testele Playwright
 ```
 
+## Cum adaugi un calculator nou
+
+Ecranele, progresul, rezultatul, drumul până la bani și foaia de trimitere sunt comune; un calculator nou aduce doar regulile, întrebările și textele:
+
+1. **Motorul**, în `src/motor/<program>/`: `config.ts` și `calc.ts` portate identic din referința de pe site, `anaf.ts` (răspunsul ANAF → datele lui `calc`) și testarea diferențială (ca în `src/motor/sme/diferential.test.ts`).
+2. **Contextul**: o funcție `(răspunsuri, răspunsurile ANAF) → context`, cu datele pentru motor și `calc()` pe ce știm până acolo (ca `src/scenariu/sme/context.ts`).
+3. **Scenariul și obiectul „program”**, în `src/scenariu/<program>.ts`: etapele progresului, pașii (aceleași tipuri: `cui`, `cardFirma`, `alegere`, `multipla`, `suma`, `oprire`, `rezultat`), rândul din progres (`rand`), ecranul de rezultat (`rezultat`, o `VedereRezultat`), „Aplică” (`aplica`), drumul până la bani, glosarul și analiza trimisă. Tipul `Program` e în `src/scenariu/program.ts`.
+4. **Pagina**: un fișier în `src/ui/programe/` (`<Calculator program={…} />`), o pagină în `src/app/<program>/` și un card pe `/` (`src/app/page.tsx`).
+
 ## Cum schimbi întrebările
 
-Totul e în [`src/scenariu/edrive.ts`](src/scenariu/edrive.ts) (instrucțiunile sunt în capul fișierului): textele, ecoul, antrenorul, ordinea ecranelor, butoanele, condițiile. `**îngroșat**`, `[[cuvânt|cheie]]` = cuvânt subliniat cu explicație din [`glosar.ts`](src/scenariu/glosar.ts). Cifrele vin mereu din motor.
+Totul e în [`src/scenariu/edrive.ts`](src/scenariu/edrive.ts) și [`src/scenariu/sme.ts`](src/scenariu/sme.ts) (instrucțiunile sunt în capul fișierelor): textele, ecoul, antrenorul, ordinea ecranelor, butoanele, condițiile. `**îngroșat**`, `[[cuvânt|cheie]]` = cuvânt subliniat cu explicație din glosarul programului ([`glosar.ts`](src/scenariu/glosar.ts), [`sme/glosar.ts`](src/scenariu/sme/glosar.ts)). Cifrele vin mereu din motor.
 
 ## Ruta `GET /api/firma?cui=`
 
-Curăță CUI-ul (scoate „RO” și spațiile), apoi cheamă proxy-ul ANAF al site-ului (`ANAF_API_URL`, implicit `https://dezvoltaredigitala.ro/wp-json/dd/v1/firma`) și întoarce același status și același JSON. Dacă site-ul nu răspunde în 25 s: `503 { ok:false, cod:'anaf_indisponibil' }`. Contractul: [`docs/referinta/anaf-api.md`](docs/referinta/anaf-api.md).
+Curăță CUI-ul (scoate „RO” și spațiile), apoi cheamă proxy-ul ANAF al site-ului (`ANAF_API_URL`, implicit `https://dezvoltaredigitala.ro/wp-json/dd/v1/firma`) și întoarce același status și același JSON. Cu `&istoric=1` (SME Eco-Tech) îl trimite mai departe (`?cui=…&istoric=1`), ca site-ul să dea și bilanțurile pe 3 ani (`bilanturi`). Dacă site-ul nu răspunde în 25 s: `503 { ok:false, cod:'anaf_indisponibil' }`. Contractul: [`docs/referinta/anaf-api.md`](docs/referinta/anaf-api.md).
 
 ## CUI-urile demo
 
-Firme inventate, servite **întotdeauna** din `src/motor/edrive/fixtures/`, fără apel la site (cu o întârziere de ~600 ms, ca să pară real). Cu `ANAF_MOCK=1`, orice alt CUI dă „negasit”.
+Firme inventate, servite **întotdeauna** din `src/motor/edrive/fixtures/` (1–12) și `src/motor/sme/fixtures/` (21–28), fără apel la site (cu o întârziere de ~600 ms, ca să pară real). Cu `ANAF_MOCK=1`, orice alt CUI dă „negasit”.
 
 | CUI | Firma | Ce arată |
 |---|---|---|
@@ -64,3 +78,16 @@ Firme inventate, servite **întotdeauna** din `src/motor/edrive/fixtures/`, făr
 | `10` | DEMO INACTIVĂ SRL | inactivă fiscal: avertisment |
 | `11` | DEMO CAPITALURI NEGATIVE SRL | capitaluri proprii negative: avertisment (scrisoare de bonitate) |
 | `12` | DEMO ÎNDATORATĂ SRL | datorii / capitaluri ≥ 7,5: avertisment (scrisoare de bonitate) |
+
+Pentru **SME Eco-Tech** (cu bilanțurile pe 2025 / 2024 / 2023; firmele 1–12, fără ele, duc la întrebarea despre vânzările din 2024):
+
+| CUI | Firma | Ce arată |
+|---|---|---|
+| `21` | DEMO VERDE MICRO SRL | micro, din 2015, CA 2024 = 1.200.000 lei: totul în regulă (parcursul principal) |
+| `22` | DEMO ECO MIJLOCIE PRODUCȚIE SA | întreprindere mijlocie, din 2008: totul în regulă |
+| `23` | DEMO NOUĂ SRL | înființată în 2023: oprire |
+| `24` | DEMO FĂRĂ VÂNZĂRI SRL | cifra de afaceri 2024 = 0: oprire |
+| `25` | DEMO PODGORIA SRL | CAEN 1102 (vinuri): oprire |
+| `26` | DEMO BILANȚ LIPSĂ SRL | bilanțul 2024 lipsă (`lipsa: true`): întreabă F5 |
+| `27` | DEMO INACTIVĂ VERDE SRL | inactivă fiscal: avertisment (în card și la „De știut”) |
+| `28` | DEMO COOPERATIVA MEȘTEȘUGARILOR | cooperativă (forma „SOCIETATE COOPERATIVĂ”): oprire |

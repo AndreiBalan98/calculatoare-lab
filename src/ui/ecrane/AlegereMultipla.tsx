@@ -2,23 +2,26 @@
 
 // Alegerea multiplă (SME Eco-Tech, C1): butoane-comutator în stilul răspunsurilor. Un buton ales
 // se umple cu bifă, ca la alegere, dar ecranul nu pleacă singur; „Continuă” e activ doar cu cel
-// puțin o alegere. Alegerile de dinainte apar bifate.
+// puțin o alegere. Alegerile de dinainte apar bifate. „← Înapoi” stă pe același rând cu
+// „Continuă”, ca ecranul să încapă fără derulare și pe telefoanele mici.
 
 import { motion } from 'framer-motion';
 import { useState } from 'react';
+import { TEXTE } from '@/scenariu/comun';
 import { alese } from '@/scenariu/derulare';
 import type { Optiune } from '@/scenariu/tipuri';
 import { MOMENT, atinge, useMiscare } from '../miscare';
 import { Buton } from './Raspunsuri';
 
 export function AlegereMultipla({
-  optiuni, raspuns, continua, laRaspuns,
+  optiuni, raspuns, continua, laRaspuns, laInapoi,
 }: {
   optiuni: Optiune[];
   /** alegerile de dinainte („verde,alte”) */
   raspuns: string | null;
   continua: string;
   laRaspuns: (valoare: string) => void;
+  laInapoi?: () => void;
 }) {
   const { intra, apasare } = useMiscare();
   const [bifate, setBifate] = useState<string[]>(() => alese(raspuns ?? undefined));
@@ -31,7 +34,7 @@ export function AlegereMultipla({
 
   return (
     <div>
-      <div className="grid grid-cols-1 gap-2.5" role="group">
+      <div className="grid grid-cols-1 gap-2" role="group">
         {optiuni.map((o, i) => (
           <Buton
             key={o.valoare}
@@ -46,7 +49,12 @@ export function AlegereMultipla({
           </Buton>
         ))}
       </div>
-      <motion.div {...intra(MOMENT.optiuni + optiuni.length * MOMENT.cascada)} className="mt-3">
+      <motion.div {...intra(MOMENT.optiuni + optiuni.length * MOMENT.cascada)} className="mt-3 flex items-center gap-3">
+        {laInapoi && (
+          <button type="button" onClick={laInapoi} className="-ml-2 min-h-11 shrink-0 px-2 text-[15px] text-senary hover:text-primary hover:underline">
+            {TEXTE.inapoi}
+          </button>
+        )}
         <motion.button
           type="button"
           whileTap={valoare ? apasare : undefined}
@@ -56,7 +64,7 @@ export function AlegereMultipla({
             atinge();
             laRaspuns(valoare);
           }}
-          className="btn-plin w-full"
+          className="btn-plin flex-1"
           data-continua
         >
           {continua}

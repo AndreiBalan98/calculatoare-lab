@@ -29,7 +29,12 @@ function Sageata() {
   );
 }
 
-export type Stare = 'normal' | 'ales' | 'preselectat' | 'estompat';
+export /** Comutatorul nebifat: un cerc gol (nu duce nicăieri, deci fără săgeată). */
+function Cerc() {
+  return <span aria-hidden className="size-5 shrink-0 rounded-full border-[1.5px] border-quinary transition-colors group-hover:border-primary" />;
+}
+
+type Stare = 'normal' | 'ales' | 'preselectat' | 'estompat';
 
 export function Buton({
   stare, patrat, onClick, children, detaliu, focus, index, className = '', eticheta, comutator,
@@ -66,14 +71,14 @@ export function Buton({
       aria-pressed={comutator ? stare === 'ales' : stare === 'preselectat' || stare === 'ales' ? true : undefined}
       aria-label={eticheta}
       className={`group flex w-full items-center gap-3 rounded-buton border text-left font-semibold leading-tight transition-[background-color,border-color,color] duration-150 ${stil} ${
-        patrat ? 'h-14 justify-center text-[20px]' : 'min-h-[52px] justify-between px-4 py-2.5 text-[17px]'
+        patrat ? 'h-14 justify-center text-[20px]' : `min-h-[52px] justify-between px-4 ${comutator ? 'py-2' : 'py-2.5'} text-[17px]`
       } ${className}`}
     >
       <span className={patrat ? '' : 'min-w-0'}>
         {children}
         {detaliu && <span className={`block text-[13px] font-normal ${stare === 'ales' ? 'text-quinary' : 'text-senary'}`}>{detaliu}</span>}
       </span>
-      {!patrat && (stare === 'ales' || stare === 'preselectat' ? <Bifa /> : <Sageata />)}
+      {!patrat && (stare === 'ales' || stare === 'preselectat' ? <Bifa /> : comutator ? <Cerc /> : <Sageata />)}
     </motion.button>
   );
 }
