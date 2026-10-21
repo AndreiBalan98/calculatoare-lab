@@ -1,0 +1,61 @@
+{
+  "ok": true,
+  "cui": "22",
+  "denumire": "DEMO ECO MIJLOCIE PRODUCȚIE SA",
+  "adresa": "MUN. SUCEAVA, STR. EXEMPLULUI NR. 22",
+  "forma_juridica": "SOCIETATE PE ACȚIUNI",
+  "forma_organizare": "PERSOANA JURIDICA",
+  "caen": "2223",
+  "stare": "INREGISTRAT din data 02.09.2008",
+  "inactiv": false,
+  "radiat": false,
+  "data_inregistrare": "2008-09-02",
+  "judet": "BOTOȘANI",
+  "judet_cod": "BT",
+  "bilant": {
+    "an": 2025,
+    "angajati": 140,
+    "cifra_afaceri": 74000000,
+    "active": 52000000,
+    "datorii": 21000000,
+    "capitaluri": 26000000,
+    "capital_social": 200,
+    "profit_brut": 6100000,
+    "profit_net": 5124000
+  },
+  "bilanturi": [
+    {
+      "an": 2025,
+      "angajati": 140,
+      "cifra_afaceri": 74000000,
+      "active": 52000000,
+      "datorii": 21000000,
+      "capitaluri": 26000000,
+      "capital_social": 200,
+      "profit_brut": 6100000,
+      "profit_net": 5124000
+    },
+    {
+      "an": 2024,
+      "angajati": 135,
+      "cifra_afaceri": 69000000,
+      "active": 49000000,
+      "datorii": 20000000,
+      "capitaluri": 23000000,
+      "capital_social": 200,
+      "profit_brut": 5600000,
+      "profit_net": 4704000
+    },
+    {
+      "an": 2023,
+      "angajati": 128,
+      "cifra_afaceri": 63000000,
+      "active": 45000000,
+      "datorii": 19500000,
+      "capitaluri": 20500000,
+      "capital_social": 200,
+      "profit_brut": 5000000,
+      "profit_net": 4200000
+    }
+  ]
+}

@@ -1,0 +1,61 @@
+{
+  "ok": true,
+  "cui": "23",
+  "denumire": "DEMO NOUĂ SRL",
+  "adresa": "MUN. BOTOȘANI, STR. EXEMPLULUI NR. 23",
+  "forma_juridica": "SOCIETATE COMERCIALĂ CU RĂSPUNDERE LIMITATĂ",
+  "forma_organizare": "PERSOANA JURIDICA",
+  "caen": "6201",
+  "stare": "INREGISTRAT din data 10.03.2023",
+  "inactiv": false,
+  "radiat": false,
+  "data_inregistrare": "2023-03-10",
+  "judet": "BOTOȘANI",
+  "judet_cod": "BT",
+  "bilant": {
+    "an": 2025,
+    "angajati": 3,
+    "cifra_afaceri": 640000,
+    "active": 310000,
+    "datorii": 120000,
+    "capitaluri": 150000,
+    "capital_social": 200,
+    "profit_brut": 70000,
+    "profit_net": 58800
+  },
+  "bilanturi": [
+    {
+      "an": 2025,
+      "angajati": 3,
+      "cifra_afaceri": 640000,
+      "active": 310000,
+      "datorii": 120000,
+      "capitaluri": 150000,
+      "capital_social": 200,
+      "profit_brut": 70000,
+      "profit_net": 58800
+    },
+    {
+      "an": 2024,
+      "angajati": 2,
+      "cifra_afaceri": 380000,
+      "active": 210000,
+      "datorii": 90000,
+      "capitaluri": 90000,
+      "capital_social": 200,
+      "profit_brut": 40000,
+      "profit_net": 33600
+    },
+    {
+      "an": 2023,
+      "angajati": 1,
+      "cifra_afaceri": 90000,
+      "active": 60000,
+      "datorii": 40000,
+      "capitaluri": 20000,
+      "capital_social": 200,
+      "profit_brut": 9000,
+      "profit_net": 7560
+    }
+  ]
+}

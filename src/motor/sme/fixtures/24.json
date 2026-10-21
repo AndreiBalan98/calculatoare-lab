@@ -1,0 +1,61 @@
+{
+  "ok": true,
+  "cui": "24",
+  "denumire": "DEMO FĂRĂ VÂNZĂRI SRL",
+  "adresa": "OR. DOROHOI, STR. EXEMPLULUI NR. 24",
+  "forma_juridica": "SOCIETATE COMERCIALĂ CU RĂSPUNDERE LIMITATĂ",
+  "forma_organizare": "PERSOANA JURIDICA",
+  "caen": "4120",
+  "stare": "INREGISTRAT din data 21.06.2016",
+  "inactiv": false,
+  "radiat": false,
+  "data_inregistrare": "2016-06-21",
+  "judet": "BOTOȘANI",
+  "judet_cod": "BT",
+  "bilant": {
+    "an": 2025,
+    "angajati": 2,
+    "cifra_afaceri": 150000,
+    "active": 400000,
+    "datorii": 250000,
+    "capitaluri": 140000,
+    "capital_social": 200,
+    "profit_brut": 10000,
+    "profit_net": 8400
+  },
+  "bilanturi": [
+    {
+      "an": 2025,
+      "angajati": 2,
+      "cifra_afaceri": 150000,
+      "active": 400000,
+      "datorii": 250000,
+      "capitaluri": 140000,
+      "capital_social": 200,
+      "profit_brut": 10000,
+      "profit_net": 8400
+    },
+    {
+      "an": 2024,
+      "angajati": 1,
+      "cifra_afaceri": 0,
+      "active": 380000,
+      "datorii": 240000,
+      "capitaluri": 130000,
+      "capital_social": 200,
+      "profit_brut": -20000,
+      "profit_net": -20000
+    },
+    {
+      "an": 2023,
+      "angajati": 1,
+      "cifra_afaceri": 210000,
+      "active": 390000,
+      "datorii": 230000,
+      "capitaluri": 150000,
+      "capital_social": 200,
+      "profit_brut": 15000,
+      "profit_net": 12600
+    }
+  ]
+}

@@ -1,0 +1,61 @@
+{
+  "ok": true,
+  "cui": "27",
+  "denumire": "DEMO INACTIVĂ VERDE SRL",
+  "adresa": "MUN. BOTOȘANI, STR. EXEMPLULUI NR. 27",
+  "forma_juridica": "SOCIETATE COMERCIALĂ CU RĂSPUNDERE LIMITATĂ",
+  "forma_organizare": "PERSOANA JURIDICA",
+  "caen": "4321",
+  "stare": "INREGISTRAT din data 05.11.2013",
+  "inactiv": true,
+  "radiat": false,
+  "data_inregistrare": "2013-11-05",
+  "judet": "BOTOȘANI",
+  "judet_cod": "BT",
+  "bilant": {
+    "an": 2025,
+    "angajati": 5,
+    "cifra_afaceri": 980000,
+    "active": 700000,
+    "datorii": 260000,
+    "capitaluri": 300000,
+    "capital_social": 200,
+    "profit_brut": 80000,
+    "profit_net": 67200
+  },
+  "bilanturi": [
+    {
+      "an": 2025,
+      "angajati": 5,
+      "cifra_afaceri": 980000,
+      "active": 700000,
+      "datorii": 260000,
+      "capitaluri": 300000,
+      "capital_social": 200,
+      "profit_brut": 80000,
+      "profit_net": 67200
+    },
+    {
+      "an": 2024,
+      "angajati": 5,
+      "cifra_afaceri": 900000,
+      "active": 650000,
+      "datorii": 250000,
+      "capitaluri": 270000,
+      "capital_social": 200,
+      "profit_brut": 70000,
+      "profit_net": 58800
+    },
+    {
+      "an": 2023,
+      "angajati": 4,
+      "cifra_afaceri": 820000,
+      "active": 600000,
+      "datorii": 240000,
+      "capitaluri": 240000,
+      "capital_social": 200,
+      "profit_brut": 60000,
+      "profit_net": 50400
+    }
+  ]
+}
