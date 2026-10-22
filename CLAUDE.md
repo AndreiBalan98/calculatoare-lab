@@ -6,12 +6,14 @@ Calculatoarele din laborator (toate în aceeași formă, pe aceleași ecrane):
 - **e-DRIVE** (`/e-drive`): finanțare pentru mașini electrice, IMM-uri.
 - **SME Eco-Tech** (`/sme-eco-tech`): grant 40% și credit bancar pentru echipamente verzi, IMM-uri.
 
+Fiecare calculator are (de la T07) și o **varianta 2, „Cifra vie”** (`/e-drive/v2`, `/sme-eco-tech/v2`): aceleași motoare și contexte, altă interfață (`docs/flux-v2.md`). Varianta 1 rămâne neschimbată.
+
 ## Cum se lucrează (important)
 
 - **Planificarea se face în altă parte** (un chat de planificare). Tu, Claude Code, **execuți task-uri** din `tasks/` (format și reguli: `tasks/README.md`).
 - Un task = **o ramură** din `main` (`tNN-nume-scurt` sau ramura atribuită de sesiune) → commit-uri → **Pull Request** spre `main` cu **raportul** cerut în `tasks/README.md`. **Nu faci merge** singur.
 - Dacă ceva din task e neclar sau contrazice documentele: alegi varianta cea mai rezonabilă, o scrii la „Presupuneri” în raport și mergi mai departe. Nu inventa reguli de finanțare.
-- Nu modifica `docs/flux-edrive.md`, `docs/flux-sme.md`, `docs/design.md` și `docs/referinta/` decât dacă task-ul o cere explicit.
+- Nu modifica `docs/flux-edrive.md`, `docs/flux-sme.md`, `docs/flux-v2.md`, `docs/design.md` și `docs/referinta/` decât dacă task-ul o cere explicit.
 
 ## Documentele
 
@@ -19,6 +21,7 @@ Calculatoarele din laborator (toate în aceeași formă, pe aceleași ecrane):
 |---|---|
 | `docs/flux-edrive.md` | **Specificația experienței** e-DRIVE (pașii, textele, principiile). Sursa de adevăr pentru UX și forma tuturor calculatoarelor |
 | `docs/flux-sme.md` | **Specificația experienței** SME Eco-Tech: doar ce diferă de e-DRIVE (ecranele, textele, glosarul) |
+| `docs/flux-v2.md` | **Specificația variantei 2 „Cifra vie”** (ambele calculatoare): cardul cifrei, glisoarele, șoapta, rezumatul; refolosește motoarele și contextele v1 |
 | `docs/design.md` | **Identitatea exactă a site-ului** (culori, fonturi, forme, rama paginii) și **principiile mișcării** („viu și organic”). Valabil pentru toate calculatoarele |
 | `docs/referinta/edrive-motor-wp.js` | Motorul e-DRIVE de pe site (JS ES5), de portat **identic** |
 | `docs/referinta/sme-motor-wp.js` | Motorul SME Eco-Tech de pe site (JS ES5), de portat **identic** |
