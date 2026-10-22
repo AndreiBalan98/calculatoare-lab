@@ -1,5 +1,5 @@
 # T07 · Varianta 2 „Cifra vie” pentru e-DRIVE și SME Eco-Tech
-Stare: de făcut
+Stare: în lucru
 Depinde de: T06 (pe `main`)
 
 ## Scopul

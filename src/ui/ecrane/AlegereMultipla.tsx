@@ -6,7 +6,7 @@
 // „Continuă”, ca ecranul să încapă fără derulare și pe telefoanele mici.
 
 import { motion } from 'framer-motion';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { TEXTE } from '@/scenariu/comun';
 import { alese } from '@/scenariu/derulare';
 import type { Optiune } from '@/scenariu/tipuri';
@@ -14,7 +14,7 @@ import { MOMENT, atinge, useMiscare } from '../miscare';
 import { Buton } from './Raspunsuri';
 
 export function AlegereMultipla({
-  optiuni, raspuns, continua, laRaspuns, laInapoi,
+  optiuni, raspuns, continua, laRaspuns, laInapoi, laSchimbare,
 }: {
   optiuni: Optiune[];
   /** alegerile de dinainte („verde,alte”) */
@@ -22,6 +22,8 @@ export function AlegereMultipla({
   continua: string;
   laRaspuns: (valoare: string) => void;
   laInapoi?: () => void;
+  /** la fiecare bifă (valorile alese, cu virgulă), înainte de „Continuă” */
+  laSchimbare?: (valoare: string) => void;
 }) {
   const { intra, apasare } = useMiscare();
   const [bifate, setBifate] = useState<string[]>(() => alese(raspuns ?? undefined));
@@ -31,6 +33,13 @@ export function AlegereMultipla({
   };
   // în ordinea opțiunilor, ca răspunsul să nu depindă de ordinea apăsărilor
   const valoare = optiuni.filter((o) => bifate.includes(o.valoare)).map((o) => o.valoare).join(',');
+  const anunta = useRef(laSchimbare);
+  useEffect(() => {
+    anunta.current = laSchimbare;
+  });
+  useEffect(() => {
+    anunta.current?.(valoare);
+  }, [valoare]);
 
   return (
     <div>

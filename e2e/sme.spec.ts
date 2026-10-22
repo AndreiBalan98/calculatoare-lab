@@ -38,7 +38,7 @@ async function altaSuma(page: Page, info: TestInfo, cheie: string, suma: string,
 }
 
 test('pagina de start: al doilea card, SME Eco-Tech „Activ” → S0 cu banda programului', async ({ page }, info) => {
-  await page.goto('/');
+  await page.goto('/?v=1');
   const card = page.getByRole('link', { name: /SME Eco-Tech/ });
   await expect(card).toContainText('grant și credit pentru echipamente verzi');
   await expect(card.getByText('Activ', { exact: true })).toHaveCSS('background-color', 'rgb(30, 123, 79)');
