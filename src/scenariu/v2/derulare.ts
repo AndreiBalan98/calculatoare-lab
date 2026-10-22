@@ -114,7 +114,7 @@ export function deruleazaV2<C extends ContextBaza>(p: ProgramV2<C>, r: Raspunsur
   const ultimul = ecrane[ecrane.length - 1];
   const umplere = ultimul?.tip === 'rezultat' ? 1 : raspunse / Math.max(intrebari.length, p.estimare(ctx), 1);
 
-  return { ecrane, ctx, acceptate: acc, cauta: d1.cauta, gata, umplere, rezumat };
+  return { ecrane, ctx, acceptate: acc, cauta: d1.cauta, gata, umplere, rezumat: p.rezumat ? p.rezumat(rezumat, ctx) : rezumat };
 }
 
 /** Ecranul de după `cheie` în drum (sau ultimul). */

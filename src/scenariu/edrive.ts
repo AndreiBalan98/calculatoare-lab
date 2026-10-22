@@ -45,6 +45,13 @@ const DE_CE: Record<string, string> = {
   'Întreprindere mijlocie': 'pentru că firma ta e [[întreprindere mijlocie|intreprindere mijlocie]]',
 };
 
+/** „Pornești cu **80 de puncte**, pentru că ești microîntreprindere.” (null = firma nu e IMM). */
+export function deCePornesti(c: Context): string | null {
+  const i = c.evaluare.incadrare;
+  if (i.status !== 'imm') return null;
+  return `Pornești cu **${puncte(i.puncte)}**, ${DE_CE[i.marime.nume] ?? `ca ${i.marime.nume.toLowerCase()}`}.`;
+}
+
 /** 2 → „două” (mașini). */
 const NUMERALE = ['', 'o', 'două', 'trei', 'patru', 'cinci', 'șase', 'șapte', 'opt', 'nouă', 'zece'];
 const masiniText = (n: number) => (n === 1 ? 'o mașină' : `${NUMERALE[n] ?? n} mașini`);
@@ -263,11 +270,7 @@ const PASI: Scenariu<Context>['pasi'] = [
     id: 'nrMasini',
     tip: 'alegere',
     etapa: 'masini',
-    ecou: (c) => {
-      const i = c.evaluare.incadrare;
-      if (i.status !== 'imm') return null;
-      return `Pornești cu **${puncte(i.puncte)}**, ${DE_CE[i.marime.nume] ?? `ca ${i.marime.nume.toLowerCase()}`}.`;
-    },
+    ecou: (c) => deCePornesti(c),
     eticheta: 'Mașinile',
     text: 'Câte mașini pe benzină sau motorină vrei să schimbi cu mașini electrice?',
     optiuni: cifre(1, CONFIG.maxVehicule),

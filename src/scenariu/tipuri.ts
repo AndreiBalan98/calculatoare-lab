@@ -38,6 +38,8 @@ export interface Optiune {
   eticheta: string;
   /** rândul mic de sub eticheta butonului */
   detaliu?: string;
+  /** rândul de sub etichetă e un câștig („✦ Primești 20 de puncte în plus”): auriu, mai mare, cu **îngroșat** */
+  detaliuCastig?: boolean;
   /** cum apare răspunsul în analiza trimisă (implicit: eticheta) */
   raspuns?: string;
   actiune?: Actiune;

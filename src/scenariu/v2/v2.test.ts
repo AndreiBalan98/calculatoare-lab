@@ -46,7 +46,9 @@ describe('e-DRIVE v2: cheile v1', () => {
     expect(d.ctx.rezultat.ajutor).toBe(50_000);
     expect(d.ctx.rezultat.total).toBe(100);
     expect(d.umplere).toBe(1);
-    expect(d.rezumat.map((b) => b.text)).toEqual(['2 mașini', '2 autoturisme', 'ale firmei de 1 an', '~25.000\u00a0€', 'UE']);
+    // „2 mașini” + „2 autoturisme” = o singură bucată, care duce la E3 și apoi la E4
+    expect(d.rezumat.map((b) => b.text)).toEqual(['2 autoturisme', 'ale firmei de 1 an', '~25.000\u00a0€', 'UE']);
+    expect(d.rezumat[0]).toEqual({ pas: 'nrMasini', text: '2 autoturisme', si: ['tipMasini'] });
     // derularea v1 merge cu răspunsurile v2 (analiza trimisă din v1)
     const d1 = deruleaza(SCENARIU_EDRIVE, r, cache);
     expect(d1.gata).toBe(true);
@@ -114,14 +116,49 @@ describe('e-DRIVE v2: cheile v1', () => {
     expect(d.acceptate.pret_0).toBeUndefined();
     expect(e.tip === 'intrebare' && e.pas.soapta?.(c, { M1: '40000' })?.text).toBe('Peste 30.000\u00a0€ pe autoturism, diferența o plătește firma.');
     // cifra din card: „până la 60.000 €” înainte de preț, finanțarea cu prețurile de pe glisor
-    expect(EDRIVE_V2.cifra(d.ctx, d, e)).toMatchObject({ prefix: 'până la', valoare: 60_000 });
-    expect(EDRIVE_V2.cifra(contextProvizoriu(EDRIVE_V2, d, e, { M1: '25000' }, cache), d, e)).toMatchObject({ valoare: 50_000 });
+    const pana = EDRIVE_V2.cifra(d.ctx, d, e);
+    expect(pana).toMatchObject({ cheie: 'euro', prefix: 'Primești până la', valoare: 60_000 });
+    expect(pana!.deCe).toBeFalsy();
+    expect(pana!.rand[1]).toBe(' puncte');
+    const scor = pana!.rand[0];
+    expect(typeof scor !== 'string' && scor.format?.(80)).toBe('80/100');
+    expect(EDRIVE_V2.cifra(contextProvizoriu(EDRIVE_V2, d, e, { M1: '25000' }, cache), d, e)).toMatchObject({ prefix: 'Primești', valoare: 50_000 });
   });
 
-  it('cifra după firmă: 80 de puncte · microîntreprindere', () => {
+  it('cifra după firmă: 80/100 și de ce (textul ecoului v1)', () => {
     const d = deruleazaV2(EDRIVE_V2, parcurge(EDRIVE_V2, '1', [['firma', { v: 'da' }]]), cache);
     const cif = EDRIVE_V2.cifra(d.ctx, d, d.ecrane.at(-1)!);
-    expect(cif).toMatchObject({ cheie: 'puncte', valoare: 80, rand: ['de puncte · microîntreprindere'] });
+    expect(cif).toMatchObject({
+      cheie: 'puncte', valoare: 80, din: '/100', eticheta: '80 din 100 de puncte',
+      deCe: 'Pornești cu **80 de puncte**, pentru că ești [[microîntreprindere|microintreprindere]].',
+    });
+    // același text ca ecoul pasului „nrMasini” din v1
+    const v1 = deruleaza(SCENARIU_EDRIVE, parcurge(EDRIVE_V2, '1', [['firma', { v: 'da' }]]), cache).ecrane.at(-1);
+    expect(v1).toMatchObject({ cheie: 'nrMasini', ecou: cif!.deCe });
+  });
+
+  it('cu microbuze, înainte de preț: cifra rămâne scorul; după preț și UE: 100/100', () => {
+    const r = parcurge(EDRIVE_V2, '2', [['firma', { v: 'da' }], ['nrMasini', { n: '2' }], ['tipMasini', { fel: 'mixt', n: '1' }]]);
+    const d = deruleazaV2(EDRIVE_V2, r, cache);
+    expect(EDRIVE_V2.cifra(d.ctx, d, d.ecrane.at(-1)!)).toMatchObject({ cheie: 'puncte', din: '/100' });
+    expect(d.rezumat.map((b) => b.text)).toEqual(['2 mașini', '1 autoturism și 1 microbuz']);
+    const rf = parcurge(EDRIVE_V2, '1', PRINCIPAL);
+    const df = deruleazaV2(EDRIVE_V2, rf, cache);
+    const cf = EDRIVE_V2.cifra(df.ctx, df, df.ecrane.at(-1)!)!;
+    const scor = cf.rand[0];
+    expect(typeof scor !== 'string' && scor.format?.(scor.numar)).toBe('100/100');
+  });
+
+  it('UE: „Da” cu rândul de câștig, fără șoaptă', () => {
+    const d = deruleazaV2(EDRIVE_V2, parcurge(EDRIVE_V2, '1', PRINCIPAL.slice(0, 5)), cache);
+    const e = d.ecrane.at(-1)!;
+    if (e.tip !== 'intrebare' || e.pas.control.tip !== 'alegere') throw new Error('UE');
+    expect(e.pas.soapta).toBeUndefined();
+    expect(e.pas.control.optiuni(e.ctx)).toEqual([
+      { valoare: 'da', eticheta: 'Da', detaliu: 'Primești **20 de puncte** în plus', detaliuCastig: true },
+      { valoare: 'nu', eticheta: 'Nu' },
+      { valoare: 'nustiu', eticheta: 'Nu știu' },
+    ]);
   });
 
   it('opririle: PFA după firmă; fără mașină de înlocuit → X2', () => {

@@ -98,10 +98,16 @@ export interface Cifra {
   /** doar cifrele („50.000”); unitatea e separată, mai mică */
   format: (n: number) => string;
   unitate?: string;
-  /** un cuvânt mic înaintea cifrei („până la”) */
+  /** după cifră, mai mic și stins, în locul unității („/100”) */
+  din?: string;
+  /** textul citit de cititorul de ecran (implicit: prefixul, cifra și unitatea) */
+  eticheta?: string;
+  /** câteva cuvinte deasupra cifrei, pe rândul lor („Primești până la”) */
   prefix?: string | null;
   /** rândul de sub cifră; o bucată cu `castig` primește „+N” auriu la creștere */
   rand: BucataRand[];
+  /** în locul rândului: de ce e cifra așa („Pornești cu **80 de puncte**, pentru că…”), mai mare */
+  deCe?: string | null;
   /** cifra gri (proiectul nu se încadrează încă) */
   gri?: boolean;
   /** indicatorul părții verzi (SME) */
@@ -127,6 +133,14 @@ export interface AntetCard {
   avert: string[];
 }
 
+/** O bucată din rezumat: textul și pasul la care duce. */
+export interface BucataRezumat {
+  pas: string;
+  text: string;
+  /** pașii de după `pas` pe care îi spune și bucata asta (comasate): după `pas`, omul trece și prin ei */
+  si?: string[];
+}
+
 /** Calculatorul în varianta 2: programul v1 (motorul, contextul, rezultatul, drumul…) + pașii noi. */
 export interface ProgramV2<C extends ContextBaza> {
   v1: Program<C>;
@@ -141,6 +155,10 @@ export interface ProgramV2<C extends ContextBaza> {
   antet: (c: C) => AntetCard;
   /** cifra din card pe ecranul dat (null = încă nu) */
   cifra: (c: C, d: DerulareV2<C>, e: EcranV2<C>) => Cifra | null;
+  /** rezumatul, după ce l-au scris pașii (ex. comasează bucățile care spun același lucru) */
+  rezumat?: (b: BucataRezumat[], c: C) => BucataRezumat[];
+  /** rezumatul ca „pastile”, cu eticheta „Răspunsurile tale” și zborul răspunsului (altfel: un rând simplu) */
+  pastile?: boolean;
 }
 
 /** Răspunsurile ANAF + cele date → contextul (al programului v1). */
@@ -182,5 +200,5 @@ export interface DerulareV2<C extends ContextBaza> {
   /** cât din linia de progres e plin (0…1) */
   umplere: number;
   /** bucățile rezumatului, cu pasul la care duce fiecare */
-  rezumat: { pas: string; text: string }[];
+  rezumat: BucataRezumat[];
 }

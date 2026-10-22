@@ -10,12 +10,12 @@
 //   pe categorie (prima mașină din categorie = suma, celelalte = „aceeasi”), UE o dată pentru toate.
 
 import { CONFIG } from '@/motor/edrive/config';
-import { EDRIVE, PROGRES, SCENARIU } from '../edrive';
+import { deCePornesti, EDRIVE, SCENARIU } from '../edrive';
 import { masiniDin, numarMasini, pretMasina, type Context, type Masina } from '../context';
 import { euro, localitate } from '../format';
 import type { BucataRand } from '../program';
 import type { Optiune, Pas, PasAlegere, PasOprire, Raspunsuri } from '../tipuri';
-import type { Cifra, Glisor, PasulV2, ProgramV2, Valori } from './tipuri';
+import type { BucataRezumat, Cifra, Glisor, PasulV2, ProgramV2, Valori } from './tipuri';
 
 type Categorie = Masina['cat'];
 
@@ -117,7 +117,7 @@ const CATEGORIE: Record<string, string> = {
 };
 
 const UE: Optiune[] = [
-  { valoare: 'da', eticheta: 'Da' },
+  { valoare: 'da', eticheta: 'Da', detaliu: `Primești **${CONFIG.bonusUE} de puncte** în plus`, detaliuCastig: true },
   { valoare: 'nu', eticheta: 'Nu' },
   { valoare: 'nustiu', eticheta: 'Nu știu' },
 ];
@@ -257,14 +257,16 @@ const pasi: PasulV2<Context>[] = [
     },
     scrie: (r, v) => cuMasini(r, {}, { ue: v.v }),
     rezumat: (v) => [UE_REZUMAT[v.v]],
-    soapta: () => ({ text: `Dacă da, primești **${CONFIG.bonusUE} de puncte** în plus.` }),
   },
   // Rezultatul
   { tip: 'rezultat', id: 'rezultat' },
 ];
 
-/** Rândul de sub cifră cu punctele (care numără, cu „+20” auriu la creștere). */
-const randPuncte = (scor: number): BucataRand[] => ['finanțare · ', { numar: scor, castig: true }, ` ${PROGRES.puncte(scor)}`];
+/** Punctajul maxim: mărimea firmei + UE. */
+const MAX = CONFIG.puncteMarime + CONFIG.bonusUE;
+
+/** Rândul de sub cifră când banii sunt eroul: „**80/100** puncte” (numără, cu „+20” auriu la creștere). */
+const randPuncte = (scor: number): BucataRand[] => [{ numar: scor, format: (n) => `${Math.round(n)}/${MAX}`, castig: true }, ' puncte'];
 
 function cifra(c: Context, d: { acceptate: Raspunsuri }): Cifra | null {
   const inc = c.evaluare.incadrare;
@@ -272,13 +274,23 @@ function cifra(c: Context, d: { acceptate: Raspunsuri }): Cifra | null {
   const scor = c.scor;
   // toate prețurile știute (acceptate sau de pe glisoare): finanțarea din motor
   if (c.masini.length && c.date.veh.length === c.masini.length) {
-    return { cheie: 'euro', valoare: c.rezultat.ajutor, format: cifre, unitate: '€', rand: randPuncte(scor) };
+    return { cheie: 'euro', prefix: 'Primești', valoare: c.rezultat.ajutor, format: cifre, unitate: '€', rand: randPuncte(scor) };
   }
+  // doar autoturisme, înainte de preț: plafonul (microbuzul nu are plafon, deci acolo rămâne scorul)
   const n1 = c.masini.filter((m) => m.cat === 'M1').length;
   if (c.masini.length && n1 === c.masini.length) {
-    return { cheie: 'euro', prefix: PROGRES.panaLa, valoare: CONFIG.plafonM1 * n1, format: cifre, unitate: '€', rand: randPuncte(scor) };
+    return { cheie: 'euro', prefix: 'Primești până la', valoare: CONFIG.plafonM1 * n1, format: cifre, unitate: '€', rand: randPuncte(scor) };
   }
-  return { cheie: 'puncte', valoare: scor, format: cifre, rand: [`${PROGRES.puncte(scor)} · ${inc.marime.nume.toLowerCase()}`] };
+  return {
+    cheie: 'puncte', valoare: scor, format: cifre, din: `/${MAX}`, eticheta: `${scor} din ${MAX} de puncte`, rand: [], deCe: deCePornesti(c),
+  };
+}
+
+/** „2 mașini” + „2 autoturisme” spun același lucru: o singură bucată, „2 autoturisme” (duce la E3, apoi E4). */
+function comasat(b: BucataRezumat[], c: Context): BucataRezumat[] {
+  const fel = b.find((x) => x.pas === 'tipMasini');
+  if (!fel || new Set(c.masini.map((m) => m.cat)).size !== 1) return b;
+  return b.filter((x) => x !== fel).map((x) => (x.pas === 'nrMasini' ? { ...x, text: fel.text, si: ['tipMasini'] } : x));
 }
 
 export const EDRIVE_V2: ProgramV2<Context> = {
@@ -305,4 +317,6 @@ export const EDRIVE_V2: ProgramV2<Context> = {
     };
   },
   cifra: (c, d) => cifra(c, d),
+  rezumat: comasat,
+  pastile: true,
 };

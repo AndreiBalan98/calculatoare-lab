@@ -5,7 +5,8 @@
 // răspunsurile + ecranul afișat + valorile de pe controale (provizorii, până la „Continuă”). Cifra se
 // calculează cu răspunsurile acceptate plus valorile provizorii; motorul dă cifrele. „Înapoi” (și
 // Back-ul browserului) = ecranul de dinainte din drum; din rezumat, după răspuns, mergi la prima
-// întrebare fără răspuns (sau înapoi la rezultat).
+// întrebare fără răspuns (sau înapoi la rezultat), trecând întâi prin pașii comasați în bucata
+// apăsată. La fiecare răspuns se ține minte de unde a plecat (din scenă), pentru zborul spre rezumat.
 
 import { AnimatePresence, LayoutGroup, motion } from 'framer-motion';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -17,16 +18,32 @@ import type { CacheAnaf, ContextBaza, Optiune, Raspunsuri } from '@/scenariu/tip
 import {
   anteriorulV2, contextProvizoriu, deruleazaV2, ecranulV2, implicite, urmatorulV2,
 } from '@/scenariu/v2/derulare';
-import type { EcranV2, ProgramV2, Soapta, Valori } from '@/scenariu/v2/tipuri';
+import type { BucataRezumat, EcranV2, ProgramV2, Soapta, Valori } from '@/scenariu/v2/tipuri';
 import { Antet, BandaProgram, Subsol } from '../Rama';
 import { GlosarContext } from '../Text';
 import { FoaieTrimitere } from '../ecrane/FoaieTrimitere';
 import { RESORT, atinge, useMiscare } from '../miscare';
-import { CardCifra } from './CardCifra';
+import { CardCifra, type Zbor } from './CardCifra';
 import { RezultatV2 } from './Rezultat';
 import { ButoaneOprire, EcranIntrebareV2, Intrebare } from './Scena';
 
 const ANAF_INDISPONIBIL: RaspunsAnaf = { ok: false, cod: 'anaf_indisponibil', mesaj: 'ANAF nu răspunde.' };
+
+/** Răspunsul dat, în scenă: butonul ales, cifra de la +/−, segmentul ales sau valoarea glisorului. */
+const SURSA_ZBOR = [
+  '[data-ecran] button[aria-pressed="true"]',
+  '[data-ecran] [data-plus-minus] output',
+  '[data-ecran] [role="radio"][aria-checked="true"]',
+  '[data-ecran] [data-valoare-glisor]',
+].join(', ');
+
+function sursaZbor(id: number): Zbor | null {
+  const el = document.querySelector<HTMLElement>(SURSA_ZBOR);
+  if (!el) return null;
+  const r = el.getBoundingClientRect();
+  if (!r.width || r.bottom < 0 || r.top > window.innerHeight) return null;
+  return { id, rect: { left: r.left, top: r.top, width: r.width, height: r.height }, text: el.innerText.split('\n')[0].trim() };
+}
 
 /** Linia de progres (2px): se umple pe un resort; pe CUI stă sub câmp și curge cât se caută firma. */
 function Linie({ umplere, gata, cauta }: { umplere: number; gata: boolean; cauta?: boolean }) {
@@ -148,8 +165,11 @@ export function CalculatorV2<C extends ContextBaza>({ program }: { program: Prog
   const [viu, setViu] = useState(false);
   const [tremura, setTremura] = useState(0);
   const [evidentiaza, setEvidentiaza] = useState(0);
+  const [zbor, setZbor] = useState<Zbor | null>(null);
   /** am sărit la o întrebare din rezumat: după răspuns, la prima fără răspuns */
   const dinRezumat = useRef(false);
+  /** pașii comasați în bucata apăsată din rezumat, prin care trecem înainte de salt */
+  const treceri = useRef<string[]>([]);
   const { ecran: varianteEcran, redus } = useMiscare();
   const istoric = useRef(0);
   const prima = useRef(true);
@@ -178,6 +198,7 @@ export function CalculatorV2<C extends ContextBaza>({ program }: { program: Prog
     const a = anteriorulV2(d, ecran.cheie);
     if (!a) return;
     dinRezumat.current = false;
+    treceri.current = [];
     setDir(-1);
     setCurent(a.cheie);
     setProv(null);
@@ -221,8 +242,13 @@ export function CalculatorV2<C extends ContextBaza>({ program }: { program: Prog
   /** Noile răspunsuri, apoi ecranul următor (sau prima întrebare fără răspuns, venind din rezumat). */
   const avanseaza = useCallback((r2: Raspunsuri, dupa: string) => {
     const d2 = deruleazaV2(program, r2, cache);
-    const urm = dinRezumat.current ? d2.ecrane[d2.ecrane.length - 1] : urmatorulV2(d2, dupa);
-    if (urm.tip === 'rezultat' || urm.tip === 'oprire') dinRezumat.current = false;
+    const vecin = urmatorulV2(d2, dupa);
+    const urm = dinRezumat.current && !treceri.current.includes(vecin.cheie) ? d2.ecrane[d2.ecrane.length - 1] : vecin;
+    treceri.current = treceri.current.filter((x) => x !== urm.cheie);
+    if (urm.tip === 'rezultat' || urm.tip === 'oprire') {
+      dinRezumat.current = false;
+      treceri.current = [];
+    }
     setR(r2);
     // linia nu coboară vizibil: doar se încetinește când aflăm că sunt mai multe întrebări
     setUmplere((u) => Math.max(u, d2.umplere));
@@ -233,6 +259,7 @@ export function CalculatorV2<C extends ContextBaza>({ program }: { program: Prog
 
   const laRaspuns = useCallback((v: Valori) => {
     if (ecran.tip !== 'intrebare') return;
+    if (program.pastile) setZbor(sursaZbor(Date.now()));
     // R-proiect: cu un proiect care nu se încadrează nu se trece mai departe
     if (ecran.pas.blocheaza?.(contextProvizoriu(program, d, ecran, v, cache))) {
       setTremura((x) => x + 1);
@@ -247,6 +274,7 @@ export function CalculatorV2<C extends ContextBaza>({ program }: { program: Prog
     setUmplere(0);
     setTrimisa(false);
     dinRezumat.current = false;
+    treceri.current = [];
     mergi('cui', -1);
   }, [v1.scenariu, mergi]);
 
@@ -257,10 +285,11 @@ export function CalculatorV2<C extends ContextBaza>({ program }: { program: Prog
     else if (a.tip === 'inapoi') mergi(a.pas, -1);
   }, [laAltCui, mergi]);
 
-  const laRezumat = useCallback((pas: string) => {
+  const laRezumat = useCallback((b: BucataRezumat) => {
     atinge();
     dinRezumat.current = true;
-    mergi(pas, -1);
+    treceri.current = b.si ?? [];
+    mergi(b.pas, -1);
   }, [mergi]);
 
   // Focusul urmează ecranul: primul element interactiv, fără derulare (nu și la prima încărcare
@@ -366,6 +395,8 @@ export function CalculatorV2<C extends ContextBaza>({ program }: { program: Prog
                     laAplica={laAplica}
                     rezumat={ecran.tip === 'oprire' ? [] : d.rezumat}
                     laRezumat={laRezumat}
+                    pastile={program.pastile}
+                    zbor={zbor}
                     compact={ecran.tip === 'intrebare' && !!ecran.pas.compact?.(ecran.ctx)}
                     viu={viu}
                     tremura={tremura}
