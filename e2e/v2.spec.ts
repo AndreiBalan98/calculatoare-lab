@@ -3,7 +3,7 @@ import { contextDin } from '@/scenariu/context';
 import { FIRME_DEMO } from '@/motor/edrive/fixtures';
 import { captura, cauta, ecran, scena, telefon } from './ajutor';
 
-// Varianta 2 „Cifra vie” (tasks/T07 §5). Capturile: CAPTURI=1 CAPTURI_DIR=T07 npx playwright test e2e/v2.spec.ts
+// Varianta 2 „Cifra vie” (tasks/T07 §5, T08 la e-DRIVE). Capturile: CAPTURI=1 CAPTURI_DIR=T07 npx playwright test e2e/v2.spec.ts
 
 /** Sumele din motor au spațiu nedespărțit înainte de unitate. */
 const nb = (t: string) => t.replace(/ (€|lei)$/, '\u00a0$1');
@@ -16,6 +16,7 @@ const cifra = (page: Page) => page.locator('[data-cifra]');
 const rand = (page: Page) => page.locator('[data-rand-cifra]');
 const soapta = (page: Page) => page.locator('[data-soapta]');
 const rezumat = (page: Page) => page.locator('[data-rezumat] button');
+const deCe = (page: Page) => page.locator('[data-de-ce]');
 const continua = (page: Page) => scena(page).getByRole('button', { name: 'Continuă', exact: true });
 const buton = (page: Page, nume: string) => scena(page).getByRole('button', { name: nume, exact: true });
 
@@ -62,7 +63,9 @@ async function principalEdrive(page: Page, info: TestInfo, capturi = false) {
 
   await ecran(page, 'nrMasini');
   await expect(cifra(page)).toHaveAttribute('data-valoare', '80');
-  await expect(rand(page)).toHaveText('de puncte · microîntreprindere');
+  await expect(cifra(page)).toHaveAttribute('aria-label', '80 din 100 de puncte');
+  await expect(cifra(page).locator('[data-din]')).toHaveText('/100');
+  await expect(deCe(page)).toHaveText('Pornești cu 80 de puncte, pentru că ești microîntreprindere.');
   await forma(page, info);
   if (capturi) await captura(page, info, 'edrive-E3');
   await plus(page, 1);
@@ -71,13 +74,15 @@ async function principalEdrive(page: Page, info: TestInfo, capturi = false) {
   await ecran(page, 'tipMasini');
   await forma(page, info);
   await scena(page).getByRole('radio', { name: 'Autoturisme' }).click();
-  await expect(cifra(page)).toHaveAttribute('aria-label', 'până la 60.000 €');
+  await expect(cifra(page)).toHaveAttribute('aria-label', 'Primești până la 60.000 €');
   if (capturi) await captura(page, info, 'edrive-E4');
   await continua(page).click();
 
   await ecran(page, 'vechi');
-  await expect(cifra(page)).toHaveAttribute('aria-label', 'până la 60.000 €');
-  await expect(rand(page)).toContainText('finanțare · 80 de puncte');
+  await expect(cifra(page)).toHaveAttribute('aria-label', 'Primești până la 60.000 €');
+  await expect(cifra(page).locator('[data-prefix]')).toHaveText('Primești până la');
+  await expect(rand(page)).toHaveText('80/100 puncte');
+  await expect(deCe(page)).toHaveCount(0);
   await forma(page, info);
   if (capturi) await captura(page, info, 'edrive-E5');
   await buton(page, 'Da').click();
@@ -94,14 +99,15 @@ async function principalEdrive(page: Page, info: TestInfo, capturi = false) {
   await continua(page).click();
 
   await ecran(page, 'ue');
-  await expect(soapta(page)).toContainText('Dacă da, primești 20 de puncte în plus.');
+  await expect(buton(page, 'Da')).toContainText('Primești 20 de puncte în plus');
+  await expect(soapta(page)).toHaveCount(0);
   await forma(page, info);
   if (capturi) await captura(page, info, 'edrive-E7');
   await buton(page, 'Da').click();
 
   await ecran(page, 'rezultat');
-  await expect(cifra(page)).toHaveAttribute('aria-label', '50.000 €');
-  await expect(rand(page)).toContainText('100 de puncte');
+  await expect(cifra(page)).toHaveAttribute('aria-label', 'Primești 50.000 €');
+  await expect(rand(page)).toHaveText(/^100\/100 puncte/);
 }
 
 test('pagina de start: comutatorul de variante (implicit 2, /?v=1)', async ({ page }, info) => {
@@ -120,24 +126,29 @@ test('pagina de start: comutatorul de variante (implicit 2, /?v=1)', async ({ pa
 
 test('e-DRIVE · parcursul principal (CUI 1) → 50.000 € · rezumatul → 3 mașini → microbuz', async ({ page }, info) => {
   await principalEdrive(page, info, true);
-  await expect(rezumat(page)).toHaveText(['2 mașini', '2 autoturisme', 'ale firmei de 1 an', '~25.000 €', 'UE']);
+  await expect(rezumat(page)).toHaveText(['2 autoturisme', 'ale firmei de 1 an', '~25.000 €', 'UE']);
   await expect(page.getByRole('button', { name: 'Trimite-ne analiza' })).toBeVisible();
   await expect(page.getByTestId('rezultat')).toContainText('Primești până la 50.000 €.');
   await captura(page, info, 'edrive-R', { desktop: true });
   await captura(page, info, 'edrive-R-intreg', { intreaga: true });
 
-  // Rezumatul: 2 mașini → 3 → direct înapoi la rezultat, cu 75.000 €
-  await page.getByRole('button', { name: 'Schimbă: 2 mașini' }).click();
+  // Rezumatul: „2 autoturisme” (comasată) → E3: 3 → E4 (felul, preselectat) → direct la rezultat, cu 75.000 €
+  await page.getByRole('button', { name: 'Schimbă: 2 autoturisme' }).click();
   await ecran(page, 'nrMasini');
   await expect(scena(page).locator('output')).toHaveAttribute('data-valoare', '2');
   await plus(page, 1);
   await expect(cifra(page)).toHaveAttribute('data-valoare', '75000'); // la fiecare apăsare
   await continua(page).click();
+  await ecran(page, 'tipMasini');
+  await expect(scena(page).getByRole('radio', { name: 'Autoturisme' })).toHaveAttribute('aria-checked', 'true');
+  await continua(page).click();
   await ecran(page, 'rezultat');
-  await expect(cifra(page)).toHaveAttribute('aria-label', '75.000 €');
+  await expect(cifra(page)).toHaveAttribute('aria-label', 'Primești 75.000 €');
 
-  // „3 autoturisme” → Amândouă, 1 microbuz → glisorul microbuzului → rezultat
+  // „3 autoturisme” → E3 → E4: Amândouă, 1 microbuz → glisorul microbuzului → rezultat
   await page.getByRole('button', { name: 'Schimbă: 3 autoturisme' }).click();
+  await ecran(page, 'nrMasini');
+  await continua(page).click();
   await ecran(page, 'tipMasini');
   await expect(scena(page).getByRole('radio', { name: 'Autoturisme' })).toHaveAttribute('aria-checked', 'true');
   await scena(page).getByRole('radio', { name: 'Amândouă' }).click();
@@ -151,7 +162,7 @@ test('e-DRIVE · parcursul principal (CUI 1) → 50.000 € · rezumatul → 3 m
   await captura(page, info, 'edrive-E6-doua', { desktop: true });
   await continua(page).click();
   await ecran(page, 'rezultat');
-  await expect(cifra(page)).toHaveAttribute('aria-label', '95.000 €');
+  await expect(cifra(page)).toHaveAttribute('aria-label', 'Primești 95.000 €');
   await expect(rezumat(page)).toContainText(['3 mașini', '2 autoturisme și 1 microbuz']);
 
   // Trimite-ne analiza (foaia din v1)
@@ -191,11 +202,11 @@ test('e-DRIVE · mixt (CUI 2): finanțarea din motor; „Aplică” UE → +20 d
     pret_0: '30000', pret_1: 'aceeasi', pret_2: '45000', ue_0: 'nu', ue_1: 'nu', ue_2: 'nu',
   }, { '2': FIRME_DEMO['2'].raspuns });
   await expect(cifra(page)).toHaveAttribute('data-valoare', String(c.rezultat.ajutor));
-  await expect(rand(page)).toContainText(`${c.rezultat.total} de puncte`);
+  await expect(rand(page)).toHaveText(`${c.rezultat.total}/100 puncte`);
   await expect(soapta(page)).toContainText('Cu modele asamblate în UE');
   await captura(page, info, 'edrive-R-soapta');
   await soapta(page).getByRole('button', { name: 'Aplică' }).click();
-  await expect(rand(page)).toContainText(`${c.rezultat.total + 20} de puncte`);
+  await expect(rand(page)).toContainText(`${c.rezultat.total + 20}/100 puncte`);
   await expect(soapta(page)).toHaveCount(0);
 });
 
@@ -221,7 +232,7 @@ test('e-DRIVE · plafonul: autoturismul la 40.000 € → 30.000 € finanțare 
   await continua(page).click();
   await buton(page, 'Nu știu').click();
   await ecran(page, 'rezultat');
-  await expect(cifra(page)).toHaveAttribute('aria-label', '30.000 €');
+  await expect(cifra(page)).toHaveAttribute('aria-label', 'Primești 30.000 €');
 });
 
 test('e-DRIVE · tap pe valoarea glisorului → câmp numeric', async ({ page }, info) => {
@@ -301,7 +312,7 @@ test('e-DRIVE · prefers-reduced-motion: parcursul complet', async ({ page }, in
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await principalEdrive(page, info);
   // cifrele apar direct
-  await expect(cifra(page).locator('p')).toHaveText(/50\.000/);
+  await expect(cifra(page).locator('p').last()).toHaveText(/50\.000/);
 });
 
 /** SME: scrie o sumă exactă în glisor (tap pe valoare → câmp). */
@@ -408,6 +419,112 @@ test('SME · opririle: CUI 23 în card; CUI 26 → întrebarea F5', async ({ pag
 test('e-DRIVE · desktop și telefoanele: fără derulare orizontală pe rezultat', async ({ page }, info) => {
   test.skip(telefon(info) && info.project.name === 'telefon', 'acoperit de parcursul principal');
   await principalEdrive(page, info);
+  const [sw, iw] = await page.evaluate(() => [document.documentElement.scrollWidth, innerWidth]);
+  expect(sw).toBeLessThanOrEqual(iw);
+});
+
+// ——— T08: scorul /100, „de ce”, „Primești până la”, UE sub „Da”, rezumatul ca pastile ———
+
+/** Până la E3, după firmă (CUI 1). */
+async function laMasini(page: Page) {
+  await cauta(page, '1', EDRIVE);
+  await ecran(page, 'firma');
+  await buton(page, 'Da').click();
+  await ecran(page, 'nrMasini');
+}
+
+test('e-DRIVE · T08: cu microbuze, cifra rămâne scorul (cu „de ce”) până la preț', async ({ page }) => {
+  await laMasini(page);
+  await plus(page, 1);
+  await continua(page).click();
+  await ecran(page, 'tipMasini');
+  await scena(page).getByRole('radio', { name: 'Amândouă' }).click();
+  await expect(cifra(page)).toHaveAttribute('data-cifra', 'puncte');
+  await continua(page).click();
+  await ecran(page, 'vechi');
+  await expect(cifra(page)).toHaveAttribute('aria-label', '80 din 100 de puncte');
+  await expect(deCe(page)).toHaveText('Pornești cu 80 de puncte, pentru că ești microîntreprindere.');
+  await expect(rezumat(page)).toHaveText(['2 mașini', '1 autoturism și 1 microbuz']);
+  await buton(page, 'Da').click();
+  await ecran(page, 'pret');
+  await expect(cifra(page)).toHaveAttribute('data-cifra', 'puncte');
+  // prima atingere a glisorului: banii trec în față, scorul în rând, „de ce”-ul pleacă
+  await scena(page).getByRole('slider', { name: 'Autoturism' }).focus();
+  await page.keyboard.press('ArrowLeft');
+  await expect(cifra(page)).toHaveAttribute('data-cifra', 'euro');
+  await expect(cifra(page).locator('[data-prefix]')).toHaveText('Primești');
+  await expect(rand(page)).toHaveText('80/100 puncte');
+  await expect(deCe(page)).toHaveCount(0);
+});
+
+test('e-DRIVE · T08: rezumatul „Răspunsurile tale”: pastila nouă se aprinde, apoi se stinge; comasarea', async ({ page }) => {
+  await laMasini(page);
+  await expect(page.locator('[data-pastile]')).toHaveCount(0);
+  await plus(page, 1);
+  await continua(page).click();
+  await ecran(page, 'tipMasini');
+  const pastile = page.locator('[data-pastile]');
+  await expect(pastile).toContainText('Răspunsurile tale');
+  const prima = rezumat(page).first();
+  await expect(prima).toHaveAccessibleName('Schimbă: 2 mașini');
+  await expect(prima).toHaveAttribute('data-nou', 'true');
+  await expect(prima).not.toHaveAttribute('data-nou', 'true', { timeout: 2500 });
+  // ținta de atingere ≥ 36px
+  expect((await prima.boundingBox())!.height).toBeGreaterThanOrEqual(36);
+
+  // E4 → „2 autoturisme”: aceeași pastilă, textul se schimbă (fără una nouă)
+  await scena(page).getByRole('radio', { name: 'Autoturisme' }).click();
+  await continua(page).click();
+  await ecran(page, 'vechi');
+  await expect(rezumat(page)).toHaveText(['2 autoturisme']);
+  await expect(rezumat(page).first()).toHaveAttribute('data-nou', 'true');
+  await expect(page.locator('[data-fantoma]')).toHaveCount(0);
+  await expect(rezumat(page).first()).not.toHaveAttribute('data-nou', 'true', { timeout: 2500 });
+
+  // o pastilă nouă: răspunsul zboară (fantoma), apoi pastila se aprinde
+  await buton(page, 'Da').click();
+  await ecran(page, 'pret');
+  await expect(rezumat(page)).toHaveText(['2 autoturisme', 'ale firmei de 1 an']);
+  await expect(rezumat(page).last()).toHaveAttribute('data-nou', 'true');
+  await expect(page.locator('[data-fantoma]')).toHaveCount(0);
+  await expect(rezumat(page).last()).not.toHaveAttribute('data-nou', 'true', { timeout: 2500 });
+});
+
+test('e-DRIVE · T08: E7 · „Da” are rândul auriu și e citit ca „Da”', async ({ page }) => {
+  await laMasini(page);
+  await continua(page).click();
+  await scena(page).getByRole('radio', { name: 'Autoturism' }).click();
+  await continua(page).click();
+  await buton(page, 'Da').click();
+  await ecran(page, 'pret');
+  await continua(page).click();
+  await ecran(page, 'ue');
+  const da = buton(page, 'Da');
+  await expect(da.locator('[data-castig]')).toHaveText('✦ Primești 20 de puncte în plus');
+  await expect(da.locator('[data-castig] strong')).toHaveText('20 de puncte');
+  await expect(buton(page, 'Nu').locator('[data-castig]')).toHaveCount(0);
+  await expect(page.locator('[data-soapta]')).toHaveCount(0);
+  await da.click();
+  await ecran(page, 'rezultat');
+  await expect(rand(page)).toContainText('100/100 puncte');
+});
+
+test('e-DRIVE · T08: 10 autoturisme → „Primești până la 300.000 €”, nimic nu iese din card', async ({ page }) => {
+  await laMasini(page);
+  await plus(page, 9);
+  await continua(page).click();
+  await ecran(page, 'tipMasini');
+  await scena(page).getByRole('radio', { name: 'Autoturisme' }).click();
+  await expect(cifra(page)).toHaveAttribute('aria-label', 'Primești până la 300.000 €');
+  await page.waitForTimeout(800);
+  const c = (await card(page).boundingBox())!;
+  for (const el of [cifra(page).locator('p').last(), cifra(page).locator('[data-prefix]'), rand(page)]) {
+    const b = (await el.boundingBox())!;
+    expect(b.x).toBeGreaterThanOrEqual(c.x);
+    expect(b.x + b.width, 'în card').toBeLessThanOrEqual(c.x + c.width);
+  }
+  const p = (await cifra(page).locator('p').last().boundingBox())!;
+  expect(p.height, 'cifra pe un singur rând').toBeLessThan(90);
   const [sw, iw] = await page.evaluate(() => [document.documentElement.scrollWidth, innerWidth]);
   expect(sw).toBeLessThanOrEqual(iw);
 });

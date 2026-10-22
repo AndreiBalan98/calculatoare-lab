@@ -1,6 +1,6 @@
 # Varianta 2 „Cifra vie”: specificația experienței (e-DRIVE și SME Eco-Tech)
 
-*A doua formă a calculatoarelor, **alături de prima** (care rămâne neschimbată). Sursa de adevăr pentru ce vede omul în `/e-drive/v2` și `/sme-eco-tech/v2`. Identitatea (culori, fonturi, forme): `docs/design.md` §1, neschimbată. Mișcarea: `docs/design.md` §2, cu ce se schimbă în §2 de mai jos. Motoarele, contextele, textele rezultatului, drumul până la bani, glosarul și analiza: **aceleași ca în varianta 1** (refolosite, nu copiate). Versiunea 1, 22 oct 2026.*
+*A doua formă a calculatoarelor, **alături de prima** (care rămâne neschimbată). Sursa de adevăr pentru ce vede omul în `/e-drive/v2` și `/sme-eco-tech/v2`. Identitatea (culori, fonturi, forme): `docs/design.md` §1, neschimbată. Mișcarea: `docs/design.md` §2, cu ce se schimbă în §2 de mai jos. Motoarele, contextele, textele rezultatului, drumul până la bani, glosarul și analiza: **aceleași ca în varianta 1** (refolosite, nu copiate). Versiunea 1.1, 22 oct 2026 (T08: finisajele e-DRIVE: scorul „x/100”, „de ce” la pornire, „Primești până la”, UE sub „Da”, rezumatul ca pastile).*
 
 ---
 
@@ -74,8 +74,8 @@ A ales direcția **„Cifra vie”**: **suma de bani e eroul**, mare, mereu sus,
 - **Apare prin transformarea câmpului CUI** (Framer Motion `layoutId`): după căutare, chenarul câmpului se lărgește și devine cardul, iar CUI-ul scris se estompează și în locul lui apare denumirea firmei. Nu dispare un lucru ca să apară altul.
 - **Rânduri**, de sus în jos:
   1. **Denumirea** (Source Serif 4, 600, `primary`, 20px) și dedesubt **categoria · localitatea** (14px, `senary`); categoria e cuvântul din glosar (subliniat punctat).
-  2. **Cifra** (vezi la fiecare calculator ce arată) — numără animat la fiecare schimbare (≈600ms, decelerat; în timpul tragerii de glisor, fără întârziere: urmează degetul, cu un resort scurt).
-  3. **Rândul de sub cifră** (15px, `senary`): ce înseamnă cifra și a doua cifră (punctele / procentul).
+  2. **Cifra** (vezi la fiecare calculator ce arată) — numără animat la fiecare schimbare (≈600ms, decelerat; în timpul tragerii de glisor, fără întârziere: urmează degetul, cu un resort scurt). Un **prefix** („Primești până la”) stă **deasupra** cifrei, pe rândul lui (17px, `senary`), nu în stânga ei; cifra rămâne pe un singur rând (sub 380px lățime, cifrele lungi trec pe 48px). În locul unității poate sta un **„din”** stins („/100”, mărimea unității, `senary`).
+  3. **Rândul de sub cifră** (15px, `senary`): ce înseamnă cifra și a doua cifră (punctele / procentul). Sau, în locul lui, **„de ce”-ul cifrei** (16px, `base`, cu îngroșat și glosar), care pleacă printr-o estompare când rândul revine.
   4. **Șoapta** (§2.4), opțional.
   5. **Rezumatul** (§2.5), după primul răspuns de după firmă; separat de restul printr-o linie 1px `quaternary`.
 - Cardul își schimbă înălțimea **lin** (`layout`), niciodată brusc.
@@ -95,6 +95,17 @@ A ales direcția **„Cifra vie”**: **suma de bani e eroul**, mare, mereu sus,
 ### 2.5 Rezumatul (ce ai spus, editabil)
 
 - Un rând (se rupe pe 2 pe telefon) cu bucățile despărțite de „ · ”, 14px, `base`; fiecare bucată e un **buton text** (subliniere fină `quaternary` la hover / focus), cu `aria-label` „Schimbă: …”.
+- **e-DRIVE: „drumul tău” (pastilele, T08).** *Deocamdată doar la e-DRIVE; la SME, mai târziu, dacă place.*
+  ```
+  │ ──────────────────────────────── │
+  │ RĂSPUNSURILE TALE                 │  eticheta: 12px, majuscule, spațiere 0,08em, `senary`
+  │ [2 autoturisme ✎] [cu promisiune ✎]│  pastilele: 15px, `primary`, 600, fond `tertiary`,
+  │ [~30.000 € ✎] [UE ✎]              │  chenar 1px `quaternary`, colțuri 999px, padding 4px 10px, distanță 6px
+  ```
+  - Fiecare pastilă are un **creion** mic (12px, `senary`) după text, iar chenarul devine `primary` la hover / focus / apăsare. Ținta de atingere: ≥ 36px înălțime. Pe ecrane mai scunde de 760px, pastilele trec pe 14px.
+  - **La fiecare răspuns, răspunsul zboară spre rezumat:** textul ales (butonul, cifra de la +/−, segmentul, valoarea glisorului) se ridică din scenă și ajunge în pastila nouă (o „fantomă” care urmărește poziția pastilei, ~450ms, decelerat; textul se schimbă pe drum în textul pastilei). Apoi pastila **se aprinde auriu** (fond `#FFF6E0`, chenar `accent`) ~1,2s, cu o mărire scurtă 1 → 1,06 → 1, și revine lin la stilul normal.
+  - Fără zbor dacă pastila nu e pe ecran (fără derulare automată) sau dacă textul unei pastile existente doar se schimbă (atunci doar se aprinde). `prefers-reduced-motion`: fără zbor și fără mărire, doar aprinderea, ca estompare.
+  - **Comasarea:** când numărul și felul spun același lucru („2 mașini” + „2 autoturisme”), o singură pastilă: „**2 autoturisme**”; tap → E3, iar după [Continuă] → E4 (felul, preselectat), apoi ca mai jos. La amestec rămân două („2 mașini”, „1 autoturism și 1 microbuz”). Pe E4, după răspuns, pastila „2 mașini” devine „2 autoturisme” (aceeași pastilă, textul se schimbă, fără zbor).
 - **Tap pe o bucată → saltul la întrebarea ei** (animația de „Înapoi”); celelalte răspunsuri rămân (ca în v1, §5, dacă sunt încă valabile); după răspuns, omul e dus la **următoarea întrebare fără răspuns** (sau înapoi la rezultat, dacă totul e răspuns). Exemplu e-DRIVE: pe rezultat, „2 mașini” → 3 → [Continuă] → direct la rezultat (a treia mașină ia prețul categoriei și răspunsul UE deja date); „3 autoturisme” → Amândouă, 1 microbuz → glisorul microbuzului (singurul preț lipsă) → rezultat.
 - Bucățile se adaugă **animat** (apar la capăt) pe măsură ce omul răspunde.
 
@@ -139,15 +150,17 @@ Când ultima întrebare primește răspuns:
 **Cheile de răspuns:** v2 scrie **aceleași chei ca v1** (`cui`, `firma`, `corectez`, `forma`, `angajati`, `cifra`, `nrMasini`, `tipMasini`, `nrMicrobuze`, `vechi`, `promisiune`, `pret_i`, `ue_i`), ca să refolosească `contextDin` neschimbat. Prețul pe categorie se scrie ca: prima mașină din categorie `pret_i` = suma exactă, celelalte din aceeași categorie `pret_j = 'aceeasi'`; UE: `ue_i` = același răspuns pentru toate mașinile.
 
 **Cifra din card:**
+Punctajul maxim e **100** (80 mărimea + 20 UE, din `CONFIG`); oriunde apare în card, scorul e „**x/100**”.
+
 | Când | Cifra | Rândul de sub ea |
 |---|---|---|
-| după firmă (încadrată) | **80** | „de puncte · microîntreprindere” |
-| după numărul și felul mașinilor, **doar autoturisme** | **până la 60.000 €** (30.000 € × autoturisme, din `CONFIG.plafonM1`) | „finanțare · 80 de puncte” |
-| idem, cu microbuze | cifra rămâne punctele (plafonul nu există la microbuz) | ca după firmă |
-| din prima atingere a glisorului de preț | **finanțarea** = `rezultat.ajutor` cu prețurile de pe glisoare (în timp ce tragi) | „finanțare · 80 de puncte” |
-| după UE | finanțarea; punctele din rând numără la 100, cu „+20” auriu | „finanțare · 100 de puncte” |
+| după firmă (încadrată), cât nu știm felul mașinilor | **80** `/100` (`aria-label` „80 din 100 de puncte”) | „Pornești cu **80 de puncte**, pentru că ești [[microîntreprindere]].” (textul ecoului v1 de pe „Câte mașini”, refolosit) |
+| după numărul și felul mașinilor, **doar autoturisme**, înainte de preț | „Primești până la” + **60.000 €** (30.000 € × autoturisme, din `CONFIG.plafonM1`) | „**80/100** puncte” |
+| idem, cu microbuze (sau amândouă) | rămâne scorul (microbuzul nu are plafon) | „Pornești cu …”, ca după firmă |
+| din prima atingere a glisorului de preț și după | „Primești” + **finanțarea** = `rezultat.ajutor` cu prețurile de pe glisoare (în timp ce tragi) | „**80/100** puncte” |
+| după UE (da) | idem | „**100/100** puncte”, cu „+20” auriu care urcă |
 
-Trecerea de la puncte la euro: cifra se estompează și urcă puțin, euro intră de jos (o singură dată), iar punctele trec în rând.
+Trecerea de la scor la bani: cifra se estompează și urcă puțin, banii intră de jos (cu prefixul deasupra), iar „de ce”-ul pleacă (estompare) și în locul lui apare rândul „80/100 puncte”. Pe rezultat, cardul păstrează „x/100 puncte” sub bani; textele rezultatului de sub card sunt cele din v1.
 
 **Ecranele:**
 
@@ -155,7 +168,7 @@ Trecerea de la puncte la euro: cifra se estompează și urcă puțin, euro intr�
 
 **E2 · Firma.** Câmpul devine cardul (§2.2). Avertismentele ANAF ca rânduri `warn` scurte în card (ca v1). Întrebarea: „**E firma ta?**” **[Da]** **[Nu]**. **[Nu]** → „**Ce nu se potrivește?**” **[Am greșit CUI-ul]** **[Cifrele nu mai sunt la zi]** (ca v1, S3). Firma fără date / cifre neactualizate → întrebările F1–F3 din v1 (aceleași texte și valori), ca butoane, una pe ecran; cardul arată „estimat din ce ne-ai spus” sub categorie. Oprire → §2.7.
 
-**E3 · Câte mașini.** „**Câte mașini schimbi cu unele electrice?**” Sub întrebare (15px, `senary`): „Fiecare mașină electrică nouă înlocuiește una veche, a firmei.” **+/−**, 1–10, pornește de la 1. [Continuă]. Rezumat: „2 mașini”.
+**E3 · Câte mașini.** „**Câte mașini schimbi cu unele electrice?**” Sub întrebare (15px, `senary`): „Fiecare mașină electrică nouă înlocuiește una veche, a firmei.” **+/−**, 1–10, pornește de la 1. [Continuă]. Rezumat: „2 mașini” (comasată cu felul, vezi §2.5).
 
 **E4 · Ce fel.** „**Ce fel de {mașină e / mașini sunt}?**” Comutator: **Autoturism(e)** · **Microbuz(e)** · **Amândouă** (al treilea doar la 2+). Sub fiecare segment, nimic; sub comutator (14px, `senary`): „Autoturism: până la 8 locuri plus șoferul. Microbuz: peste 8. Cea nouă e din aceeași categorie.” La **Amândouă**: apare animat „Câte sunt microbuze?” cu +/− (1…n−1, pornește de la 1). [Continuă]. Rezumat: „2 autoturisme” / „1 autoturism și 1 microbuz”.
 
@@ -167,7 +180,7 @@ Trecerea de la puncte la euro: cifra se estompează și urcă puțin, euro intr�
 - Șoapta, când un autoturism trece de plafon: „✦ Peste 30.000 € pe autoturism, diferența o plătește firma.”
 - [Continuă]. Rezumat: „~25.000 €” (sau „autoturism ~25.000 € · microbuz ~45.000 €”).
 
-**E7 · UE.** „**Sunt asamblate în Uniunea Europeană?**” (la o mașină: „E asamblată…”) **[Da]** **[Nu]** **[Nu știu]**. Șoapta: „✦ Dacă da, primești **20 de puncte** în plus.” Răspunsul se scrie la toate mașinile („Nu știu” = nu, ca în v1). Rezumat: „UE” / „fără UE” / „UE nesigur”.
+**E7 · UE.** „**Sunt asamblate în Uniunea Europeană?**” (la o mașină: „E asamblată…”) **[Da]** **[Nu]** **[Nu știu]**. Fără șoaptă pe acest ecran: butonul **[Da]** are, sub etichetă, rândul „**✦ Primești 20 de puncte în plus**” (din `CONFIG.bonusUE`; 15px, `accent-dark`, „20 de puncte” îngroșat; pe butonul ales, pe fond plin, auriul trece pe `accent`); numele butonului rămâne „Da”, rândul e descrierea lui. Nu și Nu știu, fără rând. Răspunsul se scrie la toate mașinile („Nu știu” = nu, ca în v1). Rezumat: „UE” / „fără UE” / „UE nesigur”.
 
 **Rezultatul** (§2.6) din `EDRIVE.rezultat(c)`; șoapta din card = antrenorul v1 („Cu modele asamblate în UE ai avea **100**. Aplică”; Aplică → UE la toate).
 

@@ -1,5 +1,5 @@
 # T08 · e-DRIVE v2: scorul /100, „de ce” la pornire, „Primești până la”, UE sub „Da”, rezumatul vizibil
-Stare: de făcut
+Stare: PR #7
 Depinde de: T07 (pe `main`)
 
 ## Scopul

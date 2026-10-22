@@ -6,11 +6,12 @@
 // Răspunsul dat mai devreme apare preselectat.
 
 import { AnimatePresence, motion } from 'framer-motion';
-import { useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react';
+import { useEffect, useId, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import { parseNum, verifica } from '@/motor/edrive/calc';
 import { TEXTE } from '@/scenariu/comun';
 import { euro } from '@/scenariu/format';
 import type { AltaSuma, Optiune } from '@/scenariu/tipuri';
+import { Text } from '../Text';
 import { AVANS_MS, MOMENT, RAPID, atinge, useMiscare } from '../miscare';
 
 export function Bifa({ className = 'size-5' }: { className?: string }) {
@@ -37,13 +38,15 @@ function Cerc() {
 type Stare = 'normal' | 'ales' | 'preselectat' | 'estompat';
 
 export function Buton({
-  stare, patrat, onClick, children, detaliu, focus, index, className = '', eticheta, comutator,
+  stare, patrat, onClick, children, detaliu, castig, focus, index, className = '', eticheta, comutator,
 }: {
   stare: Stare;
   patrat?: boolean;
   onClick: () => void;
   children: ReactNode;
   detaliu?: string;
+  /** detaliul e un câștig: auriu, 15px, cu **îngroșat**; numele butonului rămâne eticheta */
+  castig?: boolean;
   focus?: boolean;
   index: number;
   className?: string;
@@ -52,6 +55,7 @@ export function Buton({
   comutator?: boolean;
 }) {
   const { redus, apasare } = useMiscare();
+  const idDetaliu = useId();
   const inCascada = comutator || stare === 'normal' || stare === 'preselectat';
   const stil = {
     normal: 'border-quaternary bg-white text-primary hover:border-primary',
@@ -69,14 +73,20 @@ export function Buton({
       onClick={onClick}
       data-focus={focus || undefined}
       aria-pressed={comutator ? stare === 'ales' : stare === 'preselectat' || stare === 'ales' ? true : undefined}
-      aria-label={eticheta}
+      aria-label={eticheta ?? (castig && typeof children === 'string' ? children : undefined)}
+      aria-describedby={castig && detaliu ? idDetaliu : undefined}
       className={`group flex w-full items-center gap-3 rounded-buton border text-left font-semibold leading-tight transition-[background-color,border-color,color] duration-150 ${stil} ${
         patrat ? 'h-14 justify-center text-[20px]' : `min-h-[52px] justify-between px-4 ${comutator ? 'py-2' : 'py-2.5'} text-[17px]`
       } ${className}`}
     >
       <span className={patrat ? '' : 'min-w-0'}>
         {children}
-        {detaliu && <span className={`block text-[13px] font-normal ${stare === 'ales' ? 'text-quinary' : 'text-senary'}`}>{detaliu}</span>}
+        {detaliu && castig ? (
+          <span id={idDetaliu} className={`mt-0.5 block text-[15px] font-normal ${stare === 'ales' ? 'text-accent [&_strong]:text-accent' : 'text-accent-dark [&_strong]:text-accent-dark'}`} data-castig>
+            <span aria-hidden>✦ </span>
+            <Text text={detaliu} />
+          </span>
+        ) : detaliu && <span className={`block text-[13px] font-normal ${stare === 'ales' ? 'text-quinary' : 'text-senary'}`}>{detaliu}</span>}
       </span>
       {!patrat && (stare === 'ales' || stare === 'preselectat' ? <Bifa /> : comutator ? <Cerc /> : <Sageata />)}
     </motion.button>
@@ -140,6 +150,7 @@ export function Raspunsuri({
                 stare={stare(o.valoare)}
                 patrat={grila}
                 detaliu={o.detaliu}
+                castig={o.detaliuCastig}
                 focus={o.valoare === focusPe}
                 onClick={() => alege(o)}
                 className={sume && o.valoare === 'aceeasi' ? 'col-span-2' : ''}
