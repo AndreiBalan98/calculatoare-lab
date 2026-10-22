@@ -1,6 +1,6 @@
 # calculatoare-lab
 
-Laboratorul pentru calculatoarele de fonduri nerambursabile ale [dezvoltaredigitala.ro](https://dezvoltaredigitala.ro), în formă conversațională: **e-DRIVE** (`/e-drive`, mașini electrice pentru IMM-uri) și **SME Eco-Tech** (`/sme-eco-tech`, grant și credit pentru echipamente verzi). Cum lucrăm: [`CLAUDE.md`](CLAUDE.md) și [`tasks/README.md`](tasks/README.md).
+Laboratorul pentru calculatoarele de fonduri nerambursabile ale [dezvoltaredigitala.ro](https://dezvoltaredigitala.ro), în formă conversațională: **e-DRIVE** (`/e-drive`, mașini electrice pentru IMM-uri) și **SME Eco-Tech** (`/sme-eco-tech`, grant și credit pentru echipamente verzi). Fiecare are și **varianta 2 „Cifra vie”** (`/e-drive/v2`, `/sme-eco-tech/v2`, [`docs/flux-v2.md`](docs/flux-v2.md)): aceleași motoare, altă interfață; pe `/`, comutatorul „Varianta 1 · Varianta 2” (implicit 2, `/?v=1` pentru prima). Cum lucrăm: [`CLAUDE.md`](CLAUDE.md) și [`tasks/README.md`](tasks/README.md).
 
 ## Rulezi local
 
@@ -21,6 +21,7 @@ npm run lint
 npm run build
 npm run test:e2e     # Playwright (Chromium), pe telefon 390×844 și desktop 1280×800
 CAPTURI=1 CAPTURI_DIR=T06 npm run test:e2e -- e2e/sme.spec.ts   # salvează și capturile în docs/capturi/T06/
+CAPTURI=1 CAPTURI_DIR=T07 npm run test:e2e -- e2e/v2.spec.ts e2e/v2-video.spec.ts   # varianta 2 + video
 ```
 
 `test:e2e` face singur build-ul și pornește serverul pe portul 3100, în modul simulat (`ANAF_MOCK=1`), pe telefon (390×844 și 360×740) și desktop (1280×800).
@@ -37,9 +38,11 @@ src/
     edrive.ts     e-DRIVE: ecranele, toate textele și obiectul „program” (context.ts, glosar.ts, analiza.ts)
     sme.ts        SME Eco-Tech, la fel (sme/context.ts, sme/glosar.ts, sme/analiza.ts)
     tipuri.ts, derulare.ts, program.ts …   comune: formatul pașilor, răspunsuri → drumul de ecrane
+    v2/           varianta 2: pașii noi (edrive.ts, sme.ts), cu aceleași chei de răspuns ca v1, și derularea lor
   ui/             rama site-ului; ui/ecrane: un ecran = o întrebare, progresul de sus (Framer Motion),
-                  comune tuturor calculatoarelor; ui/programe: câte un fișier pe calculator
-  app/            paginile (/, /e-drive, /sme-eco-tech) și ruta GET /api/firma
+                  comune tuturor calculatoarelor; ui/programe: câte un fișier pe calculator;
+                  ui/v2: varianta 2 (cardul cifrei, controalele, scena, rezultatul, orchestrarea)
+  app/            paginile (/, /e-drive, /sme-eco-tech, …/v2) și ruta GET /api/firma
 e2e/              testele Playwright
 ```
 

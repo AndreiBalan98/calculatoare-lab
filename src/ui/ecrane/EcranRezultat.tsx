@@ -26,7 +26,7 @@ const TON: Record<CasetaDeStiut['ton'], string> = {
 export function EcranRezultat({
   vedere: v, drum, trimisa, laTrimite, laAplica, laSchimba,
 }: { vedere: VedereRezultat; drum: DateDrum; trimisa: boolean; laTrimite: () => void; laAplica: () => void; laSchimba: () => void }) {
-  const { intra, apasare, redus } = useMiscare();
+  const { intra, apasare } = useMiscare();
 
   return (
     <div data-testid="rezultat" data-varianta={v.varianta}>
@@ -80,28 +80,7 @@ export function EcranRezultat({
 
             {v.bara && (
               <motion.div {...intra(0.3 + 3 * PAS)} className="mt-6">
-                <p className="eticheta-mica">{v.bara.titlu}</p>
-                <div className="mt-2 flex h-4 w-full overflow-hidden rounded-[4px] bg-quaternary/60" aria-hidden>
-                  {v.bara.segmente.map((s, i) => (
-                    <motion.div
-                      key={s.cheie}
-                      className={`${s.culoare} h-full`}
-                      initial={{ width: 0 }}
-                      animate={{ width: `${(s.valoare / (v.bara?.total ?? 1)) * 100}%` }}
-                      transition={redus ? { duration: 0 } : { ...RESORT, delay: 0.7 + i * PAS }}
-                    />
-                  ))}
-                </div>
-                <ul className="mt-3 grid gap-1.5 text-[15px] sm:grid-cols-3 sm:gap-3">
-                  {v.bara.segmente.map((s) => (
-                    <li key={s.cheie} className="flex items-baseline gap-2">
-                      <span aria-hidden className={`${s.culoare} inline-block size-2.5 shrink-0 translate-y-[1px] rounded-[2px]`} />
-                      <span className="text-senary">{s.eticheta}</span>
-                      <NumarAnimat valoare={s.valoare} format={v.bara?.format} className="ml-auto font-semibold tabular-nums text-primary sm:ml-0" />
-                    </li>
-                  ))}
-                </ul>
-                {v.rand && <p className="mt-3 text-[15px]" data-rand-sub-bara><Text text={v.rand} /></p>}
+                <BaraBani bara={v.bara} rand={v.rand} />
               </motion.div>
             )}
 
@@ -136,12 +115,7 @@ export function EcranRezultat({
 
             {v.deStiut.length > 0 && (
               <motion.div {...intra(0.3 + 5 * PAS)} className="mt-6">
-                <p className="eticheta-mica">{TEXTE.deStiut}</p>
-                <ul className="mt-2 flex flex-col gap-2">
-                  {v.deStiut.map((a) => (
-                    <li key={a.text} className={`rounded-card px-3.5 py-2.5 text-[15px] ${TON[a.ton]}`}><Text text={a.text} /></li>
-                  ))}
-                </ul>
+                <DeStiut casete={v.deStiut} />
               </motion.div>
             )}
 
@@ -182,5 +156,50 @@ export function EcranRezultat({
         </div>
       </div>
     </div>
+  );
+}
+
+/** Bara banilor („Banii, pe scurt”): segmentele care cresc, legenda cu cifrele și rândul de sub ea. */
+export function BaraBani({ bara, rand, intarziere = 0.7 }: { bara: NonNullable<VedereRezultat['bara']>; rand: string | null; intarziere?: number }) {
+  const { redus } = useMiscare();
+  return (
+    <>
+      <p className="eticheta-mica">{bara.titlu}</p>
+      <div className="mt-2 flex h-4 w-full overflow-hidden rounded-[4px] bg-quaternary/60" aria-hidden>
+        {bara.segmente.map((s, i) => (
+          <motion.div
+            key={s.cheie}
+            className={`${s.culoare} h-full`}
+            initial={{ width: 0 }}
+            animate={{ width: `${(s.valoare / (bara.total ?? 1)) * 100}%` }}
+            transition={redus ? { duration: 0 } : { ...RESORT, delay: intarziere + i * PAS }}
+          />
+        ))}
+      </div>
+      <ul className="mt-3 grid gap-1.5 text-[15px] sm:grid-cols-3 sm:gap-3">
+        {bara.segmente.map((s) => (
+          <li key={s.cheie} className="flex items-baseline gap-2">
+            <span aria-hidden className={`${s.culoare} inline-block size-2.5 shrink-0 translate-y-[1px] rounded-[2px]`} />
+            <span className="text-senary">{s.eticheta}</span>
+            <NumarAnimat valoare={s.valoare} format={bara.format} className="ml-auto font-semibold tabular-nums text-primary sm:ml-0" />
+          </li>
+        ))}
+      </ul>
+      {rand && <p className="mt-3 text-[15px]" data-rand-sub-bara><Text text={rand} /></p>}
+    </>
+  );
+}
+
+/** „De știut”: casetele cu culorile mesajelor de stare. */
+export function DeStiut({ casete }: { casete: CasetaDeStiut[] }) {
+  return (
+    <>
+      <p className="eticheta-mica">{TEXTE.deStiut}</p>
+      <ul className="mt-2 flex flex-col gap-2">
+        {casete.map((a) => (
+          <li key={a.text} className={`rounded-card px-3.5 py-2.5 text-[15px] ${TON[a.ton]}`}><Text text={a.text} /></li>
+        ))}
+      </ul>
+    </>
   );
 }

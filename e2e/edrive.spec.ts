@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test';
 import { alege, captura, cauta, ecran, forma, progres, randRezultat, scena } from './ajutor';
 
 test('pagina de start → e-DRIVE (S0, cu banda programului)', async ({ page }, info) => {
-  await page.goto('/');
+  await page.goto('/?v=1');
   await expect(page.getByRole('heading', { name: 'Laboratorul de calculatoare' })).toBeVisible();
   await page.getByRole('link', { name: /e-DRIVE/ }).click();
   await expect(page).toHaveURL(/\/e-drive$/);
